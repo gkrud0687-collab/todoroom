@@ -98,6 +98,7 @@ function render() {
   if (next === mode && mode !== 'draw') { refresh(); return; }
   if (next === mode) return;
   mode = next;
+  if (!snapMode && window.api.log) window.api.log('quiz', `화면: ${mode}${cur ? ` (${cur.id})` : ''}`);
   ({ draw: drawScreen, watch: watchScreen, solve: solveScreen, result: resultScreen })[mode]();
   tools();
 }
@@ -261,7 +262,7 @@ async function main() {
   const cfg = await window.api.getConfig();
   me = { name: cfg.name || '나', char: cfg.char || 'hamster' };
   const user = await ensureUser(); uid = user.uid;
-  onValue(ref(db, '.info/serverTimeOffset'), (s) => { offset = Number(s.val()) || 0; });
+  onValue(ref(db, '.info/serverTimeOffset'), (s) => { offset = Number(s.val()) || 0; if (cur) { mode = ''; render(); } }); // a PC clock that is off could show the wrong screen until this arrives
   let watched = '';
   onValue(ref(db, 'quiz/current'), (snap) => {
     cur = snap.val();
