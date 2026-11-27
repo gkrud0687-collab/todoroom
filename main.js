@@ -541,6 +541,24 @@ async function snapTest(outDir) {
     todoWin.setAlwaysOnTop(false); await wait(1500); r.push('ontop ' + todoWin.isAlwaysOnTop());
     r.push('--- log ---\n' + fs.readFileSync(LOG_PATH(), 'utf8').split('\n').slice(-6).join('\n'));
     fs.writeFileSync(path.join(outDir, 'wd2.txt'), r.join('\n'));
+  } else if (process.env.TODOROOM_P14) {
+    const now = Date.now();
+    const users = { me: { name: '육몽', char: 'hamster' }, f1: { name: '민지', char: 'black_cat' } };
+    const items = [
+      { id: 'a', text: '작가 프로그램 완성', done: false, createdAt: now - 3600000 },
+      { id: 'b', text: '캐릭터 프로필 작성', done: false, createdAt: now - 3500000 },
+      { id: 'c', text: '피디 프로그램 수정', done: false, createdAt: now - 3400000, elapsed: 7242000 },
+    ];
+    const tj = (c) => todoWin.webContents.executeJavaScript(c);
+    await tj(`window.__todoroomDebug.p6(${JSON.stringify({ users, online: {}, mail: {}, trash: {}, items })})`);
+    await wait(600);
+    for (const [n, css] of Object.entries({
+      now: '',
+
+    })) {
+      await tj(`(() => { let s = document.querySelector('#p14css'); if (!s) { s = document.createElement('style'); s.id = 'p14css'; document.head.append(s); } s.textContent = ${JSON.stringify(css)}; const tom = [...document.querySelectorAll('#list li')][0]; const bs = tom ? [...tom.querySelectorAll('button')].filter((b) => b.offsetParent) : []; const r = bs.length ? Math.max(...bs.map((b) => b.getBoundingClientRect().right)) : 0; const hb = document.querySelector('.hbtns'); document.documentElement.style.setProperty('--mr', '0px'); const cur = hb.getBoundingClientRect().right; document.documentElement.style.setProperty('--mr', Math.max(0, cur - r) + 'px'); })()`);
+      await wait(300); await shot(todoWin, 'p14_' + n);
+    }
   } else if (process.env.TODOROOM_P13) {
     const lg = (x) => fs.appendFileSync(path.join(outDir, 'p13.txt'), x + '\n');
     createQuiz(); await wait(2500); lg('quiz win ' + !!quizWin + ' visible ' + (quizWin && quizWin.isVisible()));
@@ -565,6 +583,16 @@ async function snapTest(outDir) {
     await qj(`window.__todoroomDebug.show(${JSON.stringify(done)}, ${JSON.stringify([...gs, { name: '수아', text: '바나나', ok: true, ts: 3 }])}, 1, 'me')`); await wait(500); await shot(quizWin, 'p13_result');
     await petWin.webContents.executeJavaScript('window.__todoroomDebug.quizCard()'); await wait(500); await shot(petWin, 'p13_card');
     await shot(todoWin, 'p13_todo');
+    const tj = (c) => todoWin.webContents.executeJavaScript(c).catch((e) => lg('TODO JS ' + e.message));
+    await tj(`(() => { const h = document.querySelector('.hbtns'); h.style.flexDirection = 'column'; h.style.gap = '3px'; h.style.marginTop = '0'; })()`);
+    await wait(300); await shot(todoWin, 'p13_optA');
+    await tj(`(() => { const h = document.querySelector('.hbtns'); h.removeAttribute('style');
+      const foot = document.querySelector('.foot'); const q = document.querySelector('#quizBtn'); const mb = document.querySelector('#mailBtn'); const nb = document.querySelector('#noteBtn');
+      nb.replaceWith(mb); document.querySelector('#giftBtn').after(q);
+      const p = document.querySelector('#mailPanel'); const row = p.querySelector('.btns');
+      const w = document.createElement('button'); w.className = 'test'; w.textContent = '✉ 쪽지 쓰기'; row.prepend(w);
+      p.classList.add('show'); })()`);
+    await wait(400); await shot(todoWin, 'p13_optB');
   } else if (process.env.TODOROOM_P12) {
     const pj = (c) => petWin.webContents.executeJavaScript(c);
     await pj('window.__todoroomDebug.mega()'); await wait(900); await shot(petWin, 'p12_mega');

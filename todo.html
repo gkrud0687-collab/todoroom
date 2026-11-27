@@ -16,7 +16,7 @@
   .ib:hover{filter:brightness(1.06) drop-shadow(0 1px 2px rgba(80,60,140,.35))}
   .ib.off{opacity:.45}
   .content{position:absolute;left:30px;top:66px;width:340px;height:376px;display:flex;flex-direction:column}
-  .head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .head{display:flex;align-items:center;gap:10px;margin-bottom:6px;margin-top:5px}
   .face{width:52px;height:52px;object-fit:contain}
   .h1{font-size:17px;font-weight:700}
   .date{font-size:12px;opacity:.75;white-space:nowrap}
@@ -86,7 +86,9 @@
   .cheers{display:flex;gap:1px;flex:none}
   .cheers img{width:20px;height:20px;object-fit:contain}
   .panel{max-height:340px;overflow:auto}
-  .head .hbtns{margin-left:auto;align-self:center;flex:none;display:flex;gap:5px;margin-top:10px;margin-right:4px}
+  .head .htxt{flex:1;min-width:0}
+  .head .htxt .h1,.head .htxt .date{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .head .hbtns{margin-left:auto;align-self:center;flex:none;display:flex;gap:6px;margin-top:6px;margin-right:34px}
   .mailbtn{position:relative;font-size:16px}
   .mailbtn em{position:absolute;right:-6px;top:-6px;min-width:17px;height:17px;border-radius:9px;background:#e03131;color:#fff;font-size:10px;font-style:normal;font-weight:700;line-height:17px;padding:0 4px;display:none}
   .mailbtn em.on{display:block}
@@ -165,7 +167,7 @@
   <div class="content">
     <div class="head">
       <img class="face" id="face" alt="">
-      <div><div class="h1" id="hello">오늘 할 일</div><div class="date"><span id="date"></span> · <span id="count"></span><span id="myReward" class="myrw"></span></div></div>
+      <div class="htxt"><div class="h1" id="hello">오늘 할 일</div><div class="date"><span id="date"></span> · <span id="count"></span><span id="myReward" class="myrw"></span></div></div>
       <div class="hbtns">
         <button class="ib txt dndbtn" id="dndBtn" title="방해 금지">🔕</button>
         <button class="ib txt" id="quizBtn" title="그림 맞추기">🖍</button>

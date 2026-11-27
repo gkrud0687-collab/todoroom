@@ -752,7 +752,7 @@ function quizCard(q) {
   const key = 'quiz:' + q.id;
   const c = el('div', { class: 'mcard ui', title: '누르면 그림 맞추기 창이 열려요' },
     manifest[q.char] ? el('img', { src: manifest[q.char].face, alt: '' }) : null,
-    el('div', { class: 'mc' }, el('b', { text: `🖍 ${q.name || '친구'}` }), el('span', { text: '그림 문제를 냈어요! 맞혀 보세요' })));
+    el('div', { class: 'mc' }, el('b', { text: `🖍 ${q.name || '친구'}` }), el('span', {}, '그림 문제를 냈어요!', el('br'), '맞혀 보세요.')));
   const go = el('button', { class: 'reply', text: '풀기' });
   const open = (e) => { e.stopPropagation(); removeCard(key); window.api.openQuiz(); };
   go.addEventListener('click', open); c.addEventListener('click', open);
