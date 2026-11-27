@@ -244,6 +244,7 @@ function appMenuTemplate() {
   const h = hideState();
   return [
     { label: '할 일 창 열기', click: () => createTodo() },
+    { label: '🖍 그림 맞추기', click: () => createQuiz() },
     { type: 'separator' },
     { label: dndOn() ? `🔕 방해 금지 켜짐 (${config.dnd.until == null ? '직접 끌 때까지' : new Date(config.dnd.until).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' }) + '까지'})` : '방해 금지', submenu: [
       { label: '1시간', click: () => setDnd('hour') },
@@ -313,6 +314,19 @@ function createReport(auto) {
   reportWin.loadFile('report.html', { query: { auto: auto ? '1' : '0' } });
   reportWin.once('ready-to-show', () => reportWin.show());
   reportWin.on('closed', () => { reportWin = null; });
+}
+
+let quizWin = null;
+function createQuiz() {
+  if (quizWin) { quizWin.show(); quizWin.focus(); return; }
+  quizWin = new BrowserWindow({
+    width: 500, height: 400, frame: false, transparent: true, resizable: false, maximizable: false,
+    alwaysOnTop: true, title: '그림 맞추기', icon: path.join(__dirname, 'assets/ui/app_icon.png'),
+    show: false, webPreferences: webPrefs,
+  });
+  quizWin.loadFile('quiz.html', { query: { snap: process.env.TODOROOM_SNAP ? '1' : '0' } });
+  quizWin.once('ready-to-show', () => quizWin.show());
+  quizWin.on('closed', () => { quizWin = null; });
 }
 
 function createTray() {
@@ -527,6 +541,30 @@ async function snapTest(outDir) {
     todoWin.setAlwaysOnTop(false); await wait(1500); r.push('ontop ' + todoWin.isAlwaysOnTop());
     r.push('--- log ---\n' + fs.readFileSync(LOG_PATH(), 'utf8').split('\n').slice(-6).join('\n'));
     fs.writeFileSync(path.join(outDir, 'wd2.txt'), r.join('\n'));
+  } else if (process.env.TODOROOM_P13) {
+    const lg = (x) => fs.appendFileSync(path.join(outDir, 'p13.txt'), x + '\n');
+    createQuiz(); await wait(2500); lg('quiz win ' + !!quizWin + ' visible ' + (quizWin && quizWin.isVisible()));
+    const qj = (c) => quizWin.webContents.executeJavaScript(c).catch((e) => { lg('JS ERR ' + e.message); });
+    // a banana-ish drawing
+    const pts = (cx, cy, r, a0, a1, n = 24) => Array.from({ length: n }, (_, i) => { const a = a0 + (a1 - a0) * i / (n - 1); return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; });
+    const strokes = [
+      { color: '#f59e0b', size: 9, pts: pts(131, 60, 110, 0.55, 2.55) },
+      { color: '#f59e0b', size: 9, pts: pts(131, 20, 120, 0.75, 2.4) },
+      { color: '#8b5a2b', size: 9, pts: [[45, 140], [36, 150]] },
+      { color: '#3b2f4a', size: 4, pts: pts(131, 60, 110, 0.55, 2.55).map(([x, y]) => [x, y + 6]) },
+    ];
+    await qj(`window.__todoroomDebug.draw('me'); window.__todoroomDebug.strokes(${JSON.stringify(strokes)}); document.querySelectorAll('input')[0].value='바나나'; document.querySelectorAll('input')[1].value='먹는 거'; document.querySelectorAll('input')[2].value='노란색';`);
+    lg('strokes set'); await wait(400); await shot(quizWin, 'p13_draw'); lg('draw shot');
+    const img = await qj(`document.querySelector('#cv').toDataURL('image/jpeg', 0.82)`);
+    const now = Date.now();
+    const q = { id: 'q1', from: 'f1', name: '민지', char: 'hamster', img, answer: '바나나', hint1: '먹는 거', hint2: '노란색', startedAt: now, endsAt: now + 251000, status: 'open' };
+    const gs = [{ name: '수아', text: '초승달', ok: false, ts: 1 }, { name: '지우', text: '부메랑', ok: false, ts: 2 }];
+    await qj(`window.__todoroomDebug.show(${JSON.stringify(q)}, ${JSON.stringify(gs)}, 1, 'me')`); await wait(500); await shot(quizWin, 'p13_solve');
+    await qj(`window.__todoroomDebug.show(${JSON.stringify({ ...q, from: 'me', name: '육몽', char: 'black_cat' })}, ${JSON.stringify(gs)}, 0, 'me')`); await wait(500); await shot(quizWin, 'p13_watch');
+    const done = { ...q, status: 'done', winner: { uid: 'f2', name: '수아', char: 'squirrel' } };
+    await qj(`window.__todoroomDebug.show(${JSON.stringify(done)}, ${JSON.stringify([...gs, { name: '수아', text: '바나나', ok: true, ts: 3 }])}, 1, 'me')`); await wait(500); await shot(quizWin, 'p13_result');
+    await petWin.webContents.executeJavaScript('window.__todoroomDebug.quizCard()'); await wait(500); await shot(petWin, 'p13_card');
+    await shot(todoWin, 'p13_todo');
   } else if (process.env.TODOROOM_P12) {
     const pj = (c) => petWin.webContents.executeJavaScript(c);
     await pj('window.__todoroomDebug.mega()'); await wait(900); await shot(petWin, 'p12_mega');
@@ -753,6 +791,7 @@ ipcMain.on('setup:cancel', () => {
 });
 ipcMain.on('pomo:cmd', (_e, cmd) => sendPet('pomo:cmd', cmd));
 ipcMain.on('report:open', (_e, auto) => createReport(!!auto));
+ipcMain.on('quiz:open', () => createQuiz());
 ipcMain.on('report:close', () => { if (reportWin) reportWin.close(); });
 ipcMain.on('app:quit', () => { quitting = true; app.quit(); });
 ipcMain.on('pet:menu', () => {

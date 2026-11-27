@@ -747,6 +747,19 @@ function addCard(m) {
   cards.set(m.mailId, c); shownMail.add(m.mailId);
   cardBox.prepend(c);
 }
+function quizCard(q) {
+  if (!cardBox) { cardBox = el('div', { class: 'cards' }); stage.append(cardBox); }
+  const key = 'quiz:' + q.id;
+  const c = el('div', { class: 'mcard ui', title: '누르면 그림 맞추기 창이 열려요' },
+    manifest[q.char] ? el('img', { src: manifest[q.char].face, alt: '' }) : null,
+    el('div', { class: 'mc' }, el('b', { text: `🖍 ${q.name || '친구'}` }), el('span', { text: '그림 문제를 냈어요! 맞혀 보세요' })));
+  const go = el('button', { class: 'reply', text: '풀기' });
+  const open = (e) => { e.stopPropagation(); removeCard(key); window.api.openQuiz(); };
+  go.addEventListener('click', open); c.addEventListener('click', open);
+  c.append(go);
+  cards.set(key, c);
+  cardBox.prepend(c);
+}
 function removeCard(id) {
   const c = cards.get(id); if (c) { c.remove(); cards.delete(id); setIgnore(true); }
   const b = bubbles.get(id); if (b && b._close) { bubbles.delete(id); b._close(); }
@@ -1209,6 +1222,28 @@ async function main() {
     for (const id of [...cards.keys()]) if (!mailAll[id]) removeCard(id);
   };
   onValue(ref(db, `mail/${uid}`), (snap) => { mailAll = snap.val() || {}; syncCards(); }, () => {});
+
+  // 그림 맞추기: a friend's new drawing quiz becomes a small card; when it ends everyone gets a toast
+  let quizSeen = null; let quizTimer = null;
+  onValue(ref(db, 'quiz/current'), (snap) => {
+    const q = snap.val();
+    if (quizTimer) { clearTimeout(quizTimer); quizTimer = null; }
+    if (!q || !q.id) return;
+    const t = Date.now() + serverOffset;
+    const open = q.status === 'open' && t < Number(q.endsAt);
+    if (open) {
+      if (q.from !== uid && !yielded && !myDndOn() && !cards.has('quiz:' + q.id)) quizCard(q);
+      quizSeen = q.id;
+      quizTimer = setTimeout(() => { removeCard('quiz:' + q.id); toast(`⏰ ${q.from === uid ? '내' : (q.name || '친구') + '의'} 그림 문제 시간이 끝났어요. 정답은 "${q.answer}"`); }, Number(q.endsAt) - t + 500);
+      return;
+    }
+    removeCard('quiz:' + q.id);
+    if (quizSeen === q.id) { // only announce endings we saw happening
+      quizSeen = null;
+      if (q.winner) toast(q.winner.uid === uid ? `🎉 정답! "${q.answer}"` : `🎉 ${q.winner.name} 정답! 정답은 "${q.answer}"`);
+      else if (q.endedBy) toast(`${q.from === uid ? '내' : (q.name || '친구') + '의'} 그림 문제가 끝났어요. 정답은 "${q.answer}"`);
+    }
+  }, () => {});
   dndChanged = () => {
     const n = Object.values(mailAll).filter((m) => m && (m.type === 'note' || m.type === 'megaphone') && !m.read && m.from !== uid).length;
     if (n) toast(`방해 금지 동안 안 읽은 쪽지·확성기 ${n}개가 있어요`);
@@ -1310,7 +1345,8 @@ window.__todoroomDebug = {
     showMegaphone({ type: 'megaphone', from: 'f1', name: '민지', char: 'hamster', text: '오늘 다들 몇 시까지 작업해?', mailId: 'm1' }, false);
     addCard({ type: 'megaphone', mailId: 'm3', from: 'f2', name: '수아', char: 'squirrel', text: '저녁 같이 먹을 사람!' });
   },
-  syncRead(id) { removeCard(id); }, // what the mailbox listener does once a mail is marked read
+  syncRead(id) { removeCard(id); },
+  quizCard() { quizCard({ id: 'qx', from: 'f1', name: '민지', char: 'hamster' }); }, // what the mailbox listener does once a mail is marked read
   megaReplyClick() { const b = document.querySelector('.mega .reply'); if (b) b.click(); return !!b; },
   celebrate(id) { const p = pets.get(id); if (p) { p.lastDoneId = 'x'; p.celebrate(); } },
   pop(id) { const p = pets.get(id); if (p) { p.todos = [{ id: 'a', text: '원고 쓰기', done: true }, { id: 'b', text: '빨래 개기', done: false }]; openPop(p); } },

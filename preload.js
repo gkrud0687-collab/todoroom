@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('api', {
   quit: () => ipcRenderer.send('app:quit'),
   petMenu: () => ipcRenderer.send('pet:menu'),
   openReport: (auto) => ipcRenderer.send('report:open', !!auto),
+  openQuiz: () => ipcRenderer.send('quiz:open'),
   closeReport: () => ipcRenderer.send('report:close'),
   pomo: (cmd) => ipcRenderer.send('pomo:cmd', cmd),
   onPomoCmd: (cb) => ipcRenderer.on('pomo:cmd', (_e, cmd) => cb(cmd)),

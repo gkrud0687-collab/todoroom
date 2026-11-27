@@ -770,6 +770,7 @@ async function main() {
   $('#min').addEventListener('click', () => { play('close'); window.api.minimizeTodo(); });
   $('#close').addEventListener('click', () => { play('close'); window.api.hideTodo(); });
   $('#reportBtn').addEventListener('click', () => window.api.openReport(false));
+  $('#quizBtn').addEventListener('click', () => window.api.openQuiz());
   $('#freezeBtn').addEventListener('click', async () => { config = await window.api.setConfig({ freeze: !config.freeze }); renderFreeze(); });
   renderFreeze();
   $('#useHere').addEventListener('click', useHere);
