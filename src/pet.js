@@ -632,7 +632,14 @@ function nextMega() {
     el('span', { text: `${fromMe ? '나' : (ev.name || '친구')}의 ${isNote ? '쪽지' : ev.reply ? '확성기 답장' : '확성기'} · 클릭하면 닫혀요` }));
   if (!fromMe && ev.from && ev.from !== myUid) { // notes and megaphones: reply right here (1:1 note to the sender)
     const rb = el('button', { class: 'reply ui', text: '답장' });
-    rb.addEventListener('click', (e) => { e.stopPropagation(); markRead(ev.mailId); replying = true; openReply({ from: ev.from, name: ev.name, char: ev.char }, box); });
+    rb.addEventListener('click', (e) => {
+      e.stopPropagation(); replying = true;
+      // forget this bubble first: marking it read makes the mailbox listener close every bubble/card of that mail,
+      // which used to close the reply paper right away (nothing seemed to happen)
+      if (ev.mailId) bubbles.delete(ev.mailId);
+      markRead(ev.mailId);
+      openReply({ from: ev.from, name: ev.name, char: ev.char }, box);
+    });
     who.append(rb);
   }
   const box = el('div', { class: 'mega ui' + (isNote ? ' note' : '') }, el('img', { class: 'mbg', src: isNote ? 'assets/props/note_bubble.png' : 'assets/props/megaphone_bubble.png', alt: '' }), text, who);
@@ -1303,6 +1310,7 @@ window.__todoroomDebug = {
     showMegaphone({ type: 'megaphone', from: 'f1', name: '민지', char: 'hamster', text: '오늘 다들 몇 시까지 작업해?', mailId: 'm1' }, false);
     addCard({ type: 'megaphone', mailId: 'm3', from: 'f2', name: '수아', char: 'squirrel', text: '저녁 같이 먹을 사람!' });
   },
+  syncRead(id) { removeCard(id); }, // what the mailbox listener does once a mail is marked read
   megaReplyClick() { const b = document.querySelector('.mega .reply'); if (b) b.click(); return !!b; },
   celebrate(id) { const p = pets.get(id); if (p) { p.lastDoneId = 'x'; p.celebrate(); } },
   pop(id) { const p = pets.get(id); if (p) { p.todos = [{ id: 'a', text: '원고 쓰기', done: true }, { id: 'b', text: '빨래 개기', done: false }]; openPop(p); } },
