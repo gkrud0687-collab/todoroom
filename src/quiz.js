@@ -150,8 +150,12 @@ function header(text) {
   return el('div', { class: 'who' }, face(cur.char), el('span', { text }), timerEl);
 }
 function logBox() { logEl = el('div', { class: 'log' }); return logEl; }
+let logSig = '';
 function fillLog() {
   if (!logEl) return;
+  const sig = `${guesses.length}:${guesses.map((g) => g.ts).join(',')}`;
+  if (logEl.childElementCount && sig === logSig && logEl.dataset.sig === sig) return;
+  logSig = sig; logEl.dataset.sig = sig;
   logEl.textContent = '';
   if (!guesses.length) { logEl.append(el('div', { class: 'empty', text: '아직 아무도 안 맞혔어요' })); return; }
   for (const g of guesses) logEl.append(el('div', { class: g.ok ? 'good' : '', text: g.ok ? `🎉 ${g.name}: ${g.text}` : `${g.name}: ${g.text} ✗` }));
@@ -168,10 +172,12 @@ function fillHints() {
     hintBtn.disabled = left <= 0;
   }
 }
-function refresh() {
-  if (timerEl && cur) timerEl.textContent = isOpen(cur) ? `⏱ ${mmss(Number(cur.endsAt) - now())}` : '';
-  fillLog(); fillHints();
+function tickClock() {
+  if (!timerEl || !cur) return;
+  const t = isOpen(cur) ? `⏱ ${mmss(Number(cur.endsAt) - now())}` : '';
+  if (timerEl.textContent !== t) timerEl.textContent = t;
 }
+function refresh() { tickClock(); fillLog(); fillHints(); }
 
 function watchScreen() {
   showPic(cur.img);
@@ -262,7 +268,7 @@ async function main() {
   const cfg = await window.api.getConfig();
   me = { name: cfg.name || '나', char: cfg.char || 'hamster' };
   const user = await ensureUser(); uid = user.uid;
-  onValue(ref(db, '.info/serverTimeOffset'), (s) => { offset = Number(s.val()) || 0; if (cur) { mode = ''; render(); } }); // a PC clock that is off could show the wrong screen until this arrives
+  onValue(ref(db, '.info/serverTimeOffset'), (s) => { offset = Number(s.val()) || 0; if (cur && !isOpen(cur) !== (mode === 'result' || mode === 'draw')) { mode = ''; render(); } }); // fix the screen only if the PC clock had put us on the wrong one
   let watched = '';
   onValue(ref(db, 'quiz/current'), (snap) => {
     cur = snap.val();
@@ -277,7 +283,7 @@ async function main() {
     }
     render();
   }, () => { cur = null; render(); });
-  setInterval(() => { if (cur && mode !== 'draw' && mode !== 'result' && !isOpen(cur)) render(); else refresh(); }, 1000);
+  setInterval(() => { if (cur && mode !== 'draw' && mode !== 'result' && !isOpen(cur)) render(); else tickClock(); }, 1000);
 }
 
 window.__todoroomDebug = {
