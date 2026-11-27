@@ -318,8 +318,11 @@ function createReport(auto) {
 
 let quizWin = null;
 function createQuiz(reason = '') {
-  if (quizWin && reason) { quizWin.destroy(); quizWin = null; } // reopen fresh to show the result
-  if (quizWin) { quizWin.show(); quizWin.focus(); return; }
+  logLine('quiz', `창 열기 요청${reason ? ` (${reason})` : ''}${quizWin ? ' — 이미 열려 있음' : ''}`);
+  if (quizWin) { // already open: never close/reopen it (that looked like flickering); just bring it forward
+    if (reason) quizWin.webContents.send('quiz:reason', reason);
+    quizWin.show(); quizWin.focus(); return;
+  }
   quizWin = new BrowserWindow({
     width: 500, height: 400, frame: false, transparent: true, resizable: false, maximizable: false,
     alwaysOnTop: true, title: '그림 맞추기', icon: path.join(__dirname, 'assets/ui/app_icon.png'),
@@ -327,7 +330,10 @@ function createQuiz(reason = '') {
   });
   quizWin.loadFile('quiz.html', { query: { snap: process.env.TODOROOM_SNAP ? '1' : '0', reason } });
   quizWin.once('ready-to-show', () => quizWin.show());
-  quizWin.on('closed', () => { quizWin = null; });
+  quizWin.on('closed', () => { quizWin = null; logLine('quiz', '창 닫힘'); });
+  quizWin.webContents.on('render-process-gone', (_e, d) => logLine('quiz', `창 화면 멈춤/꺼짐: ${d && d.reason}`));
+  quizWin.on('unresponsive', () => logLine('quiz', '창 응답 없음'));
+  quizWin.on('hide', () => logLine('quiz', '창 숨겨짐'));
 }
 
 function createTray() {
@@ -574,6 +580,9 @@ async function snapTest(outDir) {
     ];
     await qj(`window.__todoroomDebug.draw('me'); window.__todoroomDebug.strokes(${JSON.stringify(strokes)}); document.querySelectorAll('input')[0].value='바나나'; document.querySelectorAll('input')[1].value='먹는 거'; document.querySelectorAll('input')[2].value='노란색';`);
     lg('strokes set'); await wait(400); await shot(quizWin, 'p13_draw'); lg('draw shot');
+    lg('pointer test: ' + await qj(`(() => { const cv = document.querySelector('#cv'); const r = cv.getBoundingClientRect(); const ev = (type, x, y) => cv.dispatchEvent(new PointerEvent(type, { clientX: r.left + x, clientY: r.top + y, pointerId: 1, bubbles: true }));
+      ev('pointerdown', 30, 200); for (let i = 1; i <= 40; i++) ev('pointermove', 30 + i * 4, 200 - i); ev('pointerup', 190, 160);
+      const px = cv.getContext('2d').getImageData(Math.round((30 + 20 * 4) * 2), Math.round((200 - 20) * 2), 1, 1).data; return 'pixel ' + Array.from(px).join(','); })()`));
     const img = await qj(`document.querySelector('#cv').toDataURL('image/jpeg', 0.82)`);
     const now = Date.now();
     const q = { id: 'q1', from: 'f1', name: '민지', char: 'hamster', img, answer: '바나나', hint1: '먹는 거', hint2: '노란색', startedAt: now, endsAt: now + 251000, status: 'open' };

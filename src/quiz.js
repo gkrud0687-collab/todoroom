@@ -45,13 +45,24 @@ function paint() {
   }
 }
 const pos = (e) => { const r = cv.getBoundingClientRect(); return [Math.round((e.clientX - r.left) * 10) / 10, Math.round((e.clientY - r.top) * 10) / 10]; };
+function segment(s, a, b) { // draw just one piece of a stroke (cheap), instead of repainting everything
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = s.eraser ? '#fff' : s.color; ctx.lineWidth = s.size * S;
+  ctx.beginPath(); ctx.moveTo(a[0] * S, a[1] * S); ctx.lineTo(b[0] * S + (a === b ? 0.1 : 0), b[1] * S); ctx.stroke();
+}
 cv.addEventListener('pointerdown', (e) => {
   if (mode !== 'draw') return;
   cv.setPointerCapture(e.pointerId);
-  cur1 = { color: pen.color, size: pen.eraser ? 16 : pen.size, eraser: pen.eraser, pts: [pos(e)] };
-  strokes.push(cur1); paint();
+  const p = pos(e);
+  cur1 = { color: pen.color, size: pen.eraser ? 16 : pen.size, eraser: pen.eraser, pts: [p] };
+  strokes.push(cur1); segment(cur1, p, p);
 });
-cv.addEventListener('pointermove', (e) => { if (cur1) { cur1.pts.push(pos(e)); paint(); } });
+cv.addEventListener('pointermove', (e) => {
+  if (!cur1) return;
+  const p = pos(e); const last = cur1.pts[cur1.pts.length - 1];
+  if (Math.abs(p[0] - last[0]) + Math.abs(p[1] - last[1]) < 1) return; // ignore tiny moves
+  cur1.pts.push(p); segment(cur1, last, p);
+});
 const endStroke = () => { cur1 = null; };
 cv.addEventListener('pointerup', endStroke); cv.addEventListener('pointercancel', endStroke);
 
@@ -245,6 +256,7 @@ function resultScreen() {
 // ---------- start ----------
 async function main() {
   $('#x').addEventListener('click', () => window.close());
+  if (window.api.onQuizReason) window.api.onQuizReason((r) => { if (r === 'mine') { keepOpen = true; if (closeTimer) { clearInterval(closeTimer); closeTimer = null; } mode = ''; render(); } });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.close(); });
   const cfg = await window.api.getConfig();
   me = { name: cfg.name || '나', char: cfg.char || 'hamster' };
