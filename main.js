@@ -1,4 +1,4 @@
-// 오늘 할 일 방 — main process
+// 꼬물이 마을 — main process
 const { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage, powerMonitor, shell, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -55,7 +55,7 @@ function createSetup() {
   if (setupWin) { setupWin.show(); setupWin.focus(); return; }
   setupWin = new BrowserWindow({
     width: 600, height: 400, frame: false, transparent: true, resizable: false,
-    title: '오늘 할 일 방 — 캐릭터 고르기', icon: path.join(__dirname, 'assets/ui/app_icon.png'),
+    title: '꼬물이 마을 — 캐릭터 고르기', icon: path.join(__dirname, 'assets/ui/app_icon.png'),
     webPreferences: webPrefs,
   });
   setupWin.loadFile('setup.html');
@@ -203,7 +203,7 @@ function createTodo() {
   todoWin = new BrowserWindow({
     x: pos.x, y: pos.y, width: W, height: H, frame: false, transparent: true,
     resizable: false, maximizable: false, alwaysOnTop: config.pinned !== false,
-    title: '오늘 할 일 방', icon: path.join(__dirname, 'assets/ui/app_icon.png'),
+    title: '꼬물이 마을', icon: path.join(__dirname, 'assets/ui/app_icon.png'),
     show: false, webPreferences: webPrefs,
   });
   todoWin.loadFile('todo.html');
@@ -315,7 +315,7 @@ function createTray() {
   if (tray) return;
   const icon = nativeImage.createFromPath(path.join(__dirname, 'assets/ui/app_icon.png')).resize({ width: 16, height: 16 });
   tray = new Tray(icon);
-  tray.setToolTip('오늘 할 일 방');
+  tray.setToolTip('꼬물이 마을');
   refreshTrayMenu();
   tray.on('click', () => createTodo());
 }
@@ -396,13 +396,13 @@ function startUpdater() {
   updater.on('update-available', (info) => { updateVersion = info.version; setUpdateState('downloading'); });
   updater.on('update-not-available', () => {
     setUpdateState('none');
-    if (manualCheck) dialog.showMessageBox({ type: 'info', title: '오늘 할 일 방', message: `지금 최신 버전이에요 (${app.getVersion()})`, buttons: ['확인'] });
+    if (manualCheck) dialog.showMessageBox({ type: 'info', title: '꼬물이 마을', message: `지금 최신 버전이에요 (${app.getVersion()})`, buttons: ['확인'] });
     manualCheck = false;
   });
   updater.on('error', (e) => {
     setUpdateState('error');
     logLine('update', `오류: ${e && e.message}`);
-    if (manualCheck) dialog.showMessageBox({ type: 'warning', title: '오늘 할 일 방', message: '업데이트를 확인하지 못했어요', detail: '인터넷 연결을 확인하고 잠시 뒤에 다시 해 주세요.', buttons: ['확인'] });
+    if (manualCheck) dialog.showMessageBox({ type: 'warning', title: '꼬물이 마을', message: '업데이트를 확인하지 못했어요', detail: '인터넷 연결을 확인하고 잠시 뒤에 다시 해 주세요.', buttons: ['확인'] });
     manualCheck = false;
   });
   updater.on('update-downloaded', async (info) => {
@@ -412,7 +412,7 @@ function startUpdater() {
     if (updateAsked) return;
     updateAsked = true;
     const r = await dialog.showMessageBox({
-      type: 'info', title: '오늘 할 일 방',
+      type: 'info', title: '꼬물이 마을',
       message: `새 버전 ${info.version}이 준비됐어요!`,
       detail: '지금 다시 시작하면 바로 바뀌어요.\n나중에 해도 괜찮아요. 프로그램을 끌 때 자동으로 바뀌어요.',
       buttons: ['지금 다시 시작', '나중에'], defaultId: 0, cancelId: 1,

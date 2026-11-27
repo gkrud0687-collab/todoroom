@@ -1,4 +1,4 @@
-# 오늘 할 일 방 (TodoRoom)
+# 꼬물이 마을 (TodoRoom)
 
 친구 4명이 같이 쓰는 윈도우용 데스크톱 펫 투두 앱 (Electron + Firebase).
 

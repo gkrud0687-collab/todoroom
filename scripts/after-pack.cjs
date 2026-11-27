@@ -21,8 +21,8 @@ exports.default = async function afterPack(context) {
   for (const vi of vis) {
     for (const lang of vi.getAllLanguagesForStringValues()) {
       vi.setStringValues(lang, {
-        FileDescription: '오늘 할 일 방',
-        ProductName: '오늘 할 일 방',
+        FileDescription: '꼬물이 마을',
+        ProductName: '꼬물이 마을',
         InternalName: 'TodoRoom',
         OriginalFilename: 'TodoRoom.exe',
         CompanyName: 'TodoRoom',

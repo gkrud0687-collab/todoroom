@@ -1,8 +1,8 @@
 {
   "name": "todo-room",
   "productName": "TodoRoom",
-  "version": "0.8.2",
-  "description": "오늘 할 일 방",
+  "version": "0.8.3",
+  "description": "꼬물이 마을",
   "main": "main.js",
   "private": true,
   "scripts": {
@@ -37,7 +37,7 @@
       "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "오늘 할 일 방",
+      "shortcutName": "꼬물이 마을",
       "artifactName": "TodoRoom-Setup-${version}.${ext}",
       "deleteAppDataOnUninstall": false
     },
