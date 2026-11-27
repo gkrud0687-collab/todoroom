@@ -10,10 +10,15 @@ export const HINTS_PER_PERSON = 2;
 const GUESS_GAP = 1000;
 
 const $ = (s) => document.querySelector(s);
+const snapMode = new URLSearchParams(location.search).get('snap') === '1';
 const norm = (s) => String(s || '').replace(/\s+/g, '').toLowerCase();
 let uid = null, me = { name: '나', char: 'hamster' };
 let cur = null, guesses = [], myHints = 0, offset = 0;
-let seenResult = sessionStorage.getItem('quiz.seen') || '';
+let seenResult = (() => { try { return localStorage.getItem('quiz.seen') || ''; } catch { return ''; } })();
+const markSeen = (id) => { seenResult = id; try { localStorage.setItem('quiz.seen', id); } catch {} };
+const CLOSE_AFTER = 5; // seconds the result stays before the window closes by itself
+const endedAt = (q) => Number(q.endedAt || q.endsAt) || 0;
+let closeTimer = null;
 let mode = '';
 let lastGuess = 0;
 const now = () => Date.now() + offset;
@@ -74,7 +79,9 @@ const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Ma
 
 function render() {
   const open = isOpen(cur);
-  const next = !cur ? 'draw' : open ? (cur.from === uid ? 'watch' : 'solve') : (seenResult === cur.id ? 'draw' : 'result');
+  // a finished quiz shows its result once (closing by itself); an old one (over a minute ago) or one already seen → new drawing
+  const next = !cur ? 'draw' : open ? (cur.from === uid ? 'watch' : 'solve') : (seenResult === cur.id || now() - endedAt(cur) > 60000 ? 'draw' : 'result');
+  if (next !== 'result' && closeTimer) { clearInterval(closeTimer); closeTimer = null; }
   if (next === mode && mode !== 'draw') { refresh(); return; }
   if (next === mode) return;
   mode = next;
@@ -155,7 +162,7 @@ function watchScreen() {
   end.addEventListener('click', async () => {
     end.disabled = true;
     const id = cur.id;
-    await runTransaction(ref(db, 'quiz/current'), (c) => (c && c.id === id && c.status === 'open' ? { ...c, status: 'done', endedBy: uid } : undefined)).catch(() => {});
+    await runTransaction(ref(db, 'quiz/current'), (c) => (c && c.id === id && c.status === 'open' ? { ...c, status: 'done', endedBy: uid, endedAt: now() } : undefined)).catch(() => {});
   });
   side(header('내 문제'), el('div', { class: 'hints' }, el('div', { class: 'h', text: `정답: ${cur.answer}` })), el('label', { text: '친구들이 적은 답' }), logBox(), end);
   refresh();
@@ -184,7 +191,7 @@ function solveScreen() {
     push(ref(db, `quiz/guesses/${id}`), { uid, name: me.name, text, ok, ts: now() }).catch(() => {});
     if (!ok) { msg.textContent = '땡! 다시 해 봐요'; inp.focus(); return; }
     msg.textContent = '';
-    await runTransaction(ref(db, 'quiz/current'), (c) => (c && c.id === id && c.status === 'open' ? { ...c, status: 'done', winner: { uid, name: me.name, char: me.char } } : undefined)).catch(() => {});
+    await runTransaction(ref(db, 'quiz/current'), (c) => (c && c.id === id && c.status === 'open' ? { ...c, status: 'done', winner: { uid, name: me.name, char: me.char }, endedAt: now() } : undefined)).catch(() => {});
   };
   go.addEventListener('click', guess);
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); guess(); } });
@@ -199,11 +206,22 @@ function resultScreen() {
   const w = cur.winner;
   const head = w ? (w.uid === uid ? '🎉 내가 맞혔어요!' : `🎉 ${w.name} 정답!`) : cur.endedBy ? '문제가 끝났어요' : '⏰ 시간이 끝났어요';
   const again = el('button', { class: 'ok', text: '새 문제 내기' });
-  again.addEventListener('click', () => { seenResult = cur.id; sessionStorage.setItem('quiz.seen', cur.id); strokes = []; render(); });
+  const left = el('div', { class: 'msg', style: 'text-align:center;color:#6b5ca8' });
+  again.addEventListener('click', () => { markSeen(cur.id); strokes = []; render(); });
+  // closes by itself after a few seconds (pressing '새 문제 내기' first keeps it open)
+  let n = CLOSE_AFTER; const id = cur.id;
+  const tick = () => { left.textContent = `${n}초 뒤에 창이 닫혀요`; };
+  tick();
+  if (closeTimer) clearInterval(closeTimer);
+  closeTimer = setInterval(() => {
+    n -= 1;
+    if (n <= 0) { clearInterval(closeTimer); closeTimer = null; markSeen(id); if (!snapMode) window.close(); return; }
+    tick();
+  }, 1000);
   side(
     el('div', { class: 'who' }, face(cur.char), el('span', { text: `${cur.from === uid ? '내' : (cur.name || '친구') + '의'} 문제` })),
     el('div', { class: 'result' }, el('div', { text: head }), el('div', {}, '정답은 ', el('b', { text: cur.answer }))),
-    el('label', { text: '적은 답들' }), logBox(), again,
+    el('label', { text: '적은 답들' }), logBox(), left, again,
   );
   fillLog();
 }
@@ -239,4 +257,4 @@ window.__todoroomDebug = {
   strokes(list) { strokes = list; paint(); },
 };
 
-if (new URLSearchParams(location.search).get('snap') !== '1') main().catch((e) => { console.error(e); window.api && window.api.log && window.api.log('quiz', `오류: ${e.message}`); });
+if (!snapMode) main().catch((e) => { console.error(e); window.api && window.api.log && window.api.log('quiz', `오류: ${e.message}`); });
