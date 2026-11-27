@@ -1258,7 +1258,7 @@ async function main() {
     if (open) {
       if (q.from !== uid && !yielded && !myDndOn() && !cards.has('quiz:' + q.id) && !(quizPopBox && quizPopBox._id === q.id)) quizPop(q);
       quizSeen = q.id;
-      quizTimer = setTimeout(() => { removeCard('quiz:' + q.id); closeQuizPop(q.id); toast(`⏰ ${q.from === uid ? '내' : (q.name || '친구') + '의'} 그림 문제 시간이 끝났어요. 정답은 "${q.answer}"`); }, Number(q.endsAt) - t + 500);
+      quizTimer = setTimeout(() => { removeCard('quiz:' + q.id); closeQuizPop(q.id); if (q.from === uid && !yielded) window.api.openQuiz('timeout'); toast(`⏰ ${q.from === uid ? '내' : (q.name || '친구') + '의'} 그림 문제 시간이 끝났어요. 정답은 "${q.answer}"`); }, Number(q.endsAt) - t + 500);
       return;
     }
     removeCard('quiz:' + q.id); closeQuizPop(q.id);

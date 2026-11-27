@@ -11,6 +11,8 @@ const GUESS_GAP = 1000;
 
 const $ = (s) => document.querySelector(s);
 const snapMode = new URLSearchParams(location.search).get('snap') === '1';
+// opened by itself because my quiz ran out of time: show who wrote what, and stay open until closed
+let keepOpen = new URLSearchParams(location.search).get('reason') === 'timeout';
 const norm = (s) => String(s || '').replace(/\s+/g, '').toLowerCase();
 let uid = null, me = { name: '나', char: 'hamster' };
 let cur = null, guesses = [], myHints = 0, offset = 0;
@@ -112,6 +114,9 @@ function drawScreen() {
       remove(ref(db, 'quiz/guesses')).catch(() => {});
       remove(ref(db, 'quiz/hints')).catch(() => {});
       strokes = [];
+      // posted: close my window; it opens again by itself if nobody gets it in time
+      msg.style.color = '#15803d'; msg.textContent = '문제를 냈어요! 창을 닫을게요';
+      setTimeout(() => { if (!snapMode) window.close(); }, 1200);
       window.api.log && window.api.log('quiz', `문제 냄 ${id}`);
     } catch (e) {
       msg.textContent = '보내지 못했어요. 인터넷 연결을 확인해 주세요'; go.disabled = false;
@@ -208,21 +213,32 @@ function resultScreen() {
   const again = el('button', { class: 'ok', text: '새 문제 내기' });
   const left = el('div', { class: 'msg', style: 'text-align:center;color:#6b5ca8' });
   again.addEventListener('click', () => { markSeen(cur.id); strokes = []; render(); });
-  // closes by itself after a few seconds (pressing '새 문제 내기' first keeps it open)
-  let n = CLOSE_AFTER; const id = cur.id;
-  const tick = () => { left.textContent = `${n}초 뒤에 창이 닫혀요`; };
-  tick();
-  if (closeTimer) clearInterval(closeTimer);
-  closeTimer = setInterval(() => {
-    n -= 1;
-    if (n <= 0) { clearInterval(closeTimer); closeTimer = null; markSeen(id); if (!snapMode) window.close(); return; }
-    tick();
-  }, 1000);
+  const btns = el('div', { class: 'row' }, again);
   side(
     el('div', { class: 'who' }, face(cur.char), el('span', { text: `${cur.from === uid ? '내' : (cur.name || '친구') + '의'} 문제` })),
     el('div', { class: 'result' }, el('div', { text: head }), el('div', {}, '정답은 ', el('b', { text: cur.answer }))),
-    el('label', { text: '적은 답들' }), logBox(), left, again,
+    el('label', { text: '적은 답들' }), logBox(), left, btns,
   );
+  again.style.flex = '1';
+  if (closeTimer) { clearInterval(closeTimer); closeTimer = null; }
+  const id = cur.id;
+  if (keepOpen && !w) { // my quiz ended with nobody right: stay open so I can read the wrong answers
+    left.textContent = '아무도 못 맞혔어요!';
+    const close = el('button', { class: 'sub', text: '닫기' });
+    close.addEventListener('click', () => { markSeen(id); window.close(); });
+    btns.append(close);
+    again.addEventListener('click', () => { keepOpen = false; });
+  } else {
+    // closes by itself after a few seconds (pressing '새 문제 내기' first keeps it open)
+    let n = CLOSE_AFTER;
+    const tick = () => { left.textContent = `${n}초 뒤에 창이 닫혀요`; };
+    tick();
+    closeTimer = setInterval(() => {
+      n -= 1;
+      if (n <= 0) { clearInterval(closeTimer); closeTimer = null; markSeen(id); if (!snapMode) window.close(); return; }
+      tick();
+    }, 1000);
+  }
   fillLog();
 }
 

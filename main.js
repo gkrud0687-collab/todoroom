@@ -317,14 +317,15 @@ function createReport(auto) {
 }
 
 let quizWin = null;
-function createQuiz() {
+function createQuiz(reason = '') {
+  if (quizWin && reason) { quizWin.destroy(); quizWin = null; } // reopen fresh to show the result
   if (quizWin) { quizWin.show(); quizWin.focus(); return; }
   quizWin = new BrowserWindow({
     width: 500, height: 400, frame: false, transparent: true, resizable: false, maximizable: false,
     alwaysOnTop: true, title: '그림 맞추기', icon: path.join(__dirname, 'assets/ui/app_icon.png'),
     show: false, webPreferences: webPrefs,
   });
-  quizWin.loadFile('quiz.html', { query: { snap: process.env.TODOROOM_SNAP ? '1' : '0' } });
+  quizWin.loadFile('quiz.html', { query: { snap: process.env.TODOROOM_SNAP ? '1' : '0', reason } });
   quizWin.once('ready-to-show', () => quizWin.show());
   quizWin.on('closed', () => { quizWin = null; });
 }
@@ -581,6 +582,9 @@ async function snapTest(outDir) {
     await qj(`window.__todoroomDebug.show(${JSON.stringify({ ...q, from: 'me', name: '육몽', char: 'black_cat' })}, ${JSON.stringify(gs)}, 0, 'me')`); await wait(500); await shot(quizWin, 'p13_watch');
     const done = { ...q, status: 'done', winner: { uid: 'f2', name: '수아', char: 'squirrel' } };
     await qj(`window.__todoroomDebug.show(${JSON.stringify(done)}, ${JSON.stringify([...gs, { name: '수아', text: '바나나', ok: true, ts: 3 }])}, 1, 'me')`); await wait(500); await shot(quizWin, 'p13_result');
+    quizWin.destroy(); quizWin = null; createQuiz('timeout'); await wait(1500);
+    const tout = { ...q, from: 'me', name: '육몽', char: 'black_cat', endsAt: Date.now() - 1000 };
+    await quizWin.webContents.executeJavaScript(`window.__todoroomDebug.show(${JSON.stringify(tout)}, ${JSON.stringify(gs)}, 0, 'me')`); await wait(500); await shot(quizWin, 'p13_timeout');
     await petWin.webContents.executeJavaScript('window.__todoroomDebug.quizPop()'); await wait(700); await shot(petWin, 'p13_pop');
     await petWin.webContents.executeJavaScript('window.__todoroomDebug.quizCard()'); await wait(500); await shot(petWin, 'p13_card');
     await shot(todoWin, 'p13_todo');
@@ -820,7 +824,7 @@ ipcMain.on('setup:cancel', () => {
 });
 ipcMain.on('pomo:cmd', (_e, cmd) => sendPet('pomo:cmd', cmd));
 ipcMain.on('report:open', (_e, auto) => createReport(!!auto));
-ipcMain.on('quiz:open', () => createQuiz());
+ipcMain.on('quiz:open', (_e, reason) => createQuiz(typeof reason === 'string' ? reason.slice(0, 20) : ''));
 ipcMain.on('report:close', () => { if (reportWin) reportWin.close(); });
 ipcMain.on('app:quit', () => { quitting = true; app.quit(); });
 ipcMain.on('pet:menu', () => {
