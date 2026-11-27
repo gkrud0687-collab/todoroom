@@ -11,8 +11,8 @@ const GUESS_GAP = 1000;
 
 const $ = (s) => document.querySelector(s);
 const snapMode = new URLSearchParams(location.search).get('snap') === '1';
-// opened by itself because my quiz ran out of time: show who wrote what, and stay open until closed
-let keepOpen = new URLSearchParams(location.search).get('reason') === 'timeout';
+// opened by itself because my quiz ended: show who wrote what, and stay open until closed
+let keepOpen = new URLSearchParams(location.search).get('reason') === 'mine';
 const norm = (s) => String(s || '').replace(/\s+/g, '').toLowerCase();
 let uid = null, me = { name: '나', char: 'hamster' };
 let cur = null, guesses = [], myHints = 0, offset = 0;
@@ -222,8 +222,8 @@ function resultScreen() {
   again.style.flex = '1';
   if (closeTimer) { clearInterval(closeTimer); closeTimer = null; }
   const id = cur.id;
-  if (keepOpen && !w) { // my quiz ended with nobody right: stay open so I can read the wrong answers
-    left.textContent = '아무도 못 맞혔어요!';
+  if (keepOpen || cur.from === uid) { // my own quiz: stay open so I can read what everyone wrote
+    left.textContent = w ? '친구들이 적은 답을 보세요!' : '아무도 못 맞혔어요!';
     const close = el('button', { class: 'sub', text: '닫기' });
     close.addEventListener('click', () => { markSeen(id); window.close(); });
     btns.append(close);

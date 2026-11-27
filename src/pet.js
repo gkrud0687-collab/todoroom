@@ -1258,12 +1258,13 @@ async function main() {
     if (open) {
       if (q.from !== uid && !yielded && !myDndOn() && !cards.has('quiz:' + q.id) && !(quizPopBox && quizPopBox._id === q.id)) quizPop(q);
       quizSeen = q.id;
-      quizTimer = setTimeout(() => { removeCard('quiz:' + q.id); closeQuizPop(q.id); if (q.from === uid && !yielded) window.api.openQuiz('timeout'); toast(`⏰ ${q.from === uid ? '내' : (q.name || '친구') + '의'} 그림 문제 시간이 끝났어요. 정답은 "${q.answer}"`); }, Number(q.endsAt) - t + 500);
+      quizTimer = setTimeout(() => { removeCard('quiz:' + q.id); closeQuizPop(q.id); if (q.from === uid && !yielded) window.api.openQuiz('mine'); toast(`⏰ ${q.from === uid ? '내' : (q.name || '친구') + '의'} 그림 문제 시간이 끝났어요. 정답은 "${q.answer}"`); }, Number(q.endsAt) - t + 500);
       return;
     }
     removeCard('quiz:' + q.id); closeQuizPop(q.id);
     if (quizSeen === q.id) { // only announce endings we saw happening
       quizSeen = null;
+      if (q.winner && q.from === uid && !yielded) window.api.openQuiz('mine'); // my quiz was solved: show me the answers everyone wrote
       if (q.winner) toast(q.winner.uid === uid ? `🎉 정답! "${q.answer}"` : `🎉 ${q.winner.name} 정답! 정답은 "${q.answer}"`);
       else if (q.endedBy) toast(`${q.from === uid ? '내' : (q.name || '친구') + '의'} 그림 문제가 끝났어요. 정답은 "${q.answer}"`);
     }
