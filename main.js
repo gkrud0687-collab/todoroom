@@ -556,7 +556,7 @@ async function snapTest(outDir) {
       now: '',
 
     })) {
-      await tj(`(() => { let s = document.querySelector('#p14css'); if (!s) { s = document.createElement('style'); s.id = 'p14css'; document.head.append(s); } s.textContent = ${JSON.stringify(css)}; const tom = [...document.querySelectorAll('#list li')][0]; const bs = tom ? [...tom.querySelectorAll('button')].filter((b) => b.offsetParent) : []; const r = bs.length ? Math.max(...bs.map((b) => b.getBoundingClientRect().right)) : 0; const hb = document.querySelector('.hbtns'); document.documentElement.style.setProperty('--mr', '0px'); const cur = hb.getBoundingClientRect().right; document.documentElement.style.setProperty('--mr', Math.max(0, cur - r) + 'px'); })()`);
+      await tj(`(() => { let s = document.querySelector('#p14css'); if (!s) { s = document.createElement('style'); s.id = 'p14css'; document.head.append(s); } s.textContent = ${JSON.stringify(css)}; if (${JSON.stringify(n)} === 'imgBoth') document.querySelector('#dndBtn').innerHTML = '<img src="assets/ui/btn_dnd.png" alt="">'; const tom = [...document.querySelectorAll('#list li')][0]; const bs = tom ? [...tom.querySelectorAll('button')].filter((b) => b.offsetParent) : []; const r = bs.length ? Math.max(...bs.map((b) => b.getBoundingClientRect().right)) : 0; const hb = document.querySelector('.hbtns'); document.documentElement.style.setProperty('--mr', '0px'); const cur = hb.getBoundingClientRect().right; document.documentElement.style.setProperty('--mr', Math.max(0, cur - r) + 'px'); })()`);
       await wait(300); await shot(todoWin, 'p14_' + n);
     }
   } else if (process.env.TODOROOM_P13) {
