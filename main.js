@@ -230,7 +230,7 @@ function setDnd(mode) {
 function setFreeze(on) {
   config.freeze = !!on;
   logLine('app', `그대로 멈춰라 ${on ? '켬' : '끔'}`);
-  saveConfig(); broadcastConfig(); refreshTrayMenu();
+  saveConfig(); broadcastConfig(); refreshTrayMenu(); refreshJumpList();
 }
 function hideState() { return { mine: false, all: false, ...(config.hide || {}) }; }
 function broadcastConfig() {
@@ -281,8 +281,10 @@ function refreshJumpList() {
       task(dndOn() ? '방해 금지 끄기' : '방해 금지 켜기', '--todoroom-dnd'),
       task(h.mine ? '내 캐릭터 다시 보이기' : '내 캐릭터 숨기기', '--todoroom-hide-mine'),
       task(h.all ? '모든 캐릭터 다시 보이기' : '모든 캐릭터 숨기기', '--todoroom-hide-all'),
+      task(config.freeze ? '그대로 멈춰라 끄기' : '그대로 멈춰라 켜기', '--todoroom-freeze'),
       task('캐릭터 다시 불러오기', '--todoroom-reload-pets'),
       task('캐릭터·이름 바꾸기', '--todoroom-setup'),
+      task('업데이트 확인', '--todoroom-update'),
       task('종료', '--todoroom-quit'),
     ]);
   } catch (e) { console.error(e); }
@@ -296,6 +298,8 @@ function handleArgs(argv) {
   if (has('--todoroom-reload-pets')) { recreatePet('작업표시줄 메뉴에서 다시 불러오기'); return true; }
   if (has('--todoroom-open')) { createTodo(); return true; }
   if (has('--todoroom-dnd')) { setDnd(dndOn() ? 'off' : 'manual'); return true; }
+  if (has('--todoroom-freeze')) { setFreeze(!config.freeze); return true; }
+  if (has('--todoroom-update')) { if (updater) updateMenuClick(); else dialog.showMessageBox({ type: 'info', title: APP_NAME, message: '이 버전은 자동 업데이트를 쓰지 않아요', buttons: ['확인'] }); return true; }
   return false;
 }
 
@@ -351,6 +355,38 @@ function startMain() {
 }
 
 if (process.platform === 'win32') app.setAppUserModelId('com.todoroom.app');
+
+// ---------- Start menu / desktop shortcuts ----------
+// Windows only shows the app name and the taskbar jump list for an app that has a Start menu shortcut with the
+// same AppUserModelID. After the rename (오늘 할 일 방 → 꼬물이 마을) that shortcut could go missing, so the installed
+// app makes sure it is there, and renames an old desktop shortcut that points at this app.
+const APP_NAME = '꼬물이 마을';
+const OLD_NAMES = ['오늘 할 일 방'];
+function fixShortcuts() {
+  if (!app.isPackaged || process.platform !== 'win32') return;
+  try {
+    const exe = process.execPath;
+    const opts = { target: exe, appUserModelId: 'com.todoroom.app', description: APP_NAME, icon: exe, iconIndex: 0 };
+    const pointsHere = (lnk) => { try { return path.resolve(shell.readShortcutLink(lnk).target).toLowerCase() === path.resolve(exe).toLowerCase(); } catch { return false; } };
+    const menuDir = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs');
+    const menuLnk = path.join(menuDir, `${APP_NAME}.lnk`);
+    const ok = shell.writeShortcutLink(menuLnk, fs.existsSync(menuLnk) ? 'update' : 'create', opts);
+    for (const old of OLD_NAMES) {
+      const o = path.join(menuDir, `${old}.lnk`);
+      if (fs.existsSync(o) && pointsHere(o)) fs.rmSync(o, { force: true });
+    }
+    const desk = app.getPath('desktop');
+    for (const old of OLD_NAMES) {
+      const o = path.join(desk, `${old}.lnk`);
+      const n = path.join(desk, `${APP_NAME}.lnk`);
+      if (fs.existsSync(o) && pointsHere(o)) {
+        if (!fs.existsSync(n)) shell.writeShortcutLink(n, 'create', opts);
+        fs.rmSync(o, { force: true });
+      }
+    }
+    logLine('app', `바로가기 확인: 시작 메뉴 ${ok ? '정상' : '실패'}`);
+  } catch (e) { logLine('app', `바로가기 확인 실패: ${e.message}`); }
+}
 
 // ---------- automatic update (installed version only: GitHub Releases → setup.exe + latest.yml) ----------
 let updater = null;
@@ -439,6 +475,7 @@ app.whenReady().then(() => {
   if (config.uid && config.char && config.name) startMain();
   else createSetup();
   startUpdater();
+  fixShortcuts();
 });
 
 app.on('second-instance', (_e, argv) => {
