@@ -630,7 +630,7 @@ function nextMega() {
   const who = el('div', { class: 'mwho' },
     manifest[ev.char] ? el('img', { src: manifest[ev.char].face, alt: '' }) : null,
     el('span', { text: `${fromMe ? '나' : (ev.name || '친구')}의 ${isNote ? '쪽지' : '확성기'} · 클릭하면 닫혀요` }));
-  if (isNote && !fromMe) {
+  if (!fromMe && ev.from && ev.from !== myUid) { // notes and megaphones: reply right here (1:1 note to the sender)
     const rb = el('button', { class: 'reply ui', text: '답장' });
     rb.addEventListener('click', (e) => { e.stopPropagation(); markRead(ev.mailId); replying = true; openReply({ from: ev.from, name: ev.name, char: ev.char }, box); });
     who.append(rb);
@@ -666,6 +666,10 @@ function openReply(m, existing) {
     requestAnimationFrame(() => box.classList.add('show'));
   }
   box.classList.add('replying');
+  if (!box.classList.contains('note')) { // a megaphone bubble turns into note paper
+    box.classList.add('note');
+    const bg = box.querySelector('.mbg'); if (bg) bg.src = 'assets/props/note_bubble.png';
+  }
   for (const n of [...box.children]) if (!n.classList.contains('mbg')) n.remove();
   const ta = el('textarea', { class: 'mtext rin', maxlength: String(NOTE_MAX), placeholder: `${name}에게 보낼 답장 (100자까지)` });
   const cnt = el('em', { class: 'rcnt', text: `0/${NOTE_MAX}` });
@@ -722,7 +726,7 @@ function addCard(m) {
   const c = el('div', { class: 'mcard ui' + (isNote ? ' note' : ''), title: '클릭하면 읽음으로 바뀌고 닫혀요' },
     isNote ? el('img', { src: 'assets/props/note.png', alt: '' }) : manifest[m.char] ? el('img', { src: manifest[m.char].face, alt: '' }) : null,
     el('div', { class: 'mc' }, el('b', { text: `${isNote ? '✉ 쪽지 · ' : '📢 '}${m.name || '친구'}` }), el('span', { text: String(m.text || '').slice(0, isNote ? NOTE_MAX : 40) })));
-  if (isNote) {
+  if (m.from && m.from !== myUid) {
     const rb = el('button', { class: 'reply', text: '답장' });
     rb.addEventListener('click', (e) => { e.stopPropagation(); markRead(m.mailId); removeCard(m.mailId); openReply({ from: m.from, name: m.name, char: m.char }); });
     c.append(rb);
@@ -1289,6 +1293,12 @@ window.__todoroomDebug = {
     addCard({ type: 'note', mailId: 'n2', from: 'f2', name: '수아', char: 'squirrel', text: '어제 말한 자료 메일로 보냈어!' });
     addCard({ type: 'megaphone', mailId: 'm2', from: 'f1', name: '민지', char: 'hamster', text: '다들 점심 먹었어??' });
   },
+  mega() {
+    if (!myInfo) { myUid = myUid || 'me'; myInfo = { uid: myUid, name: '하경', char: 'black_cat' }; }
+    showMegaphone({ type: 'megaphone', from: 'f1', name: '민지', char: 'hamster', text: '오늘 다들 몇 시까지 작업해?', mailId: 'm1' }, false);
+    addCard({ type: 'megaphone', mailId: 'm3', from: 'f2', name: '수아', char: 'squirrel', text: '저녁 같이 먹을 사람!' });
+  },
+  megaReplyClick() { const b = document.querySelector('.mega .reply'); if (b) b.click(); return !!b; },
   celebrate(id) { const p = pets.get(id); if (p) { p.lastDoneId = 'x'; p.celebrate(); } },
   pop(id) { const p = pets.get(id); if (p) { p.todos = [{ id: 'a', text: '원고 쓰기', done: true }, { id: 'b', text: '빨래 개기', done: false }]; openPop(p); } },
 };
