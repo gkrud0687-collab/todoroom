@@ -21,7 +21,7 @@ const isOpen = (q) => !!(q && q.status === 'open' && now() < Number(q.endsAt));
 
 // ---------- drawing ----------
 const cv = $('#cv'); const ctx = cv.getContext('2d');
-const S = cv.width / 262; // canvas is drawn at 2x for sharp lines
+const S = cv.width / 248; // canvas is drawn at 2x for sharp lines
 const COLORS = ['#3b2f4a', '#e5484d', '#f59e0b', '#22a06b', '#3b82f6', '#8b5a2b'];
 let pen = { color: COLORS[0], size: 4, eraser: false };
 let strokes = [], cur1 = null;
