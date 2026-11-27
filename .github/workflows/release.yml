@@ -1,0 +1,90 @@
+# main에 올라온 코드의 package.json 버전으로 아직 Release가 없으면
+# 윈도우에서 설치 프로그램을 만들고 Release(v<버전>)에 파일 3개를 올린다.
+# → 친구들 프로그램이 자동 업데이트로 받는다.
+# Actions 탭의 "Run workflow"로 돌리면 Release 없이 빌드만 시험해 본다.
+name: build-and-release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check version
+        id: ver
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if gh release view "v$V" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "exists=yes" >> "$GITHUB_OUTPUT"; echo "v$V 은 이미 있어요 — Release는 만들지 않아요."
+          else
+            echo "exists=no" >> "$GITHUB_OUTPUT"; echo "새 버전 v$V"
+          fi
+
+      - name: Stop (nothing to do)
+        if: github.event_name == 'push' && steps.ver.outputs.exists == 'yes'
+        shell: bash
+        run: echo "버전을 올리지 않아서 건너뛰어요."
+
+      - uses: actions/setup-node@v4
+        if: github.event_name == 'workflow_dispatch' || steps.ver.outputs.exists == 'no'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Firebase config from secret
+        if: github.event_name == 'workflow_dispatch' || steps.ver.outputs.exists == 'no'
+        shell: bash
+        env:
+          FIREBASE_CONFIG_JS: ${{ secrets.FIREBASE_CONFIG_JS }}
+        run: |
+          if [ -z "$FIREBASE_CONFIG_JS" ]; then echo "::error::Secrets에 FIREBASE_CONFIG_JS가 없어요"; exit 1; fi
+          printf '%s\n' "$FIREBASE_CONFIG_JS" > src/firebase-config.js
+
+      - name: Build installer
+        if: github.event_name == 'workflow_dispatch' || steps.ver.outputs.exists == 'no'
+        shell: bash
+        run: |
+          npm ci
+          npm run dist
+          ls -la release
+
+      - name: Keep files (test run)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: TodoRoom-${{ steps.ver.outputs.version }}
+          path: |
+            release/*.exe
+            release/*.blockmap
+            release/latest.yml
+          retention-days: 3
+
+      - name: Create release
+        if: github.event_name == 'push' && steps.ver.outputs.exists == 'no'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=${{ steps.ver.outputs.version }}
+          gh release create "v$V" \
+            "release/TodoRoom-Setup-$V.exe" \
+            "release/TodoRoom-Setup-$V.exe.blockmap" \
+            release/latest.yml \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "v$V" --notes "자동 빌드 (커밋 ${GITHUB_SHA::7})"

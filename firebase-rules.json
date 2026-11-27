@@ -1,0 +1,123 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['name', 'char'])",
+        "name": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 12"
+        },
+        "char": {
+          ".validate": "newData.val() === 'black_cat' || newData.val() === 'hamster' || newData.val() === 'squirrel' || newData.val() === 'chick'"
+        },
+        "$other": {
+          ".validate": "$other === 'color' || $other === 'mood' || $other === 'updatedAt' || ($other === 'linked' && newData.isBoolean())"
+        }
+      }
+    },
+    "claims": {
+      ".read": "auth != null",
+      "$char": {
+        ".write": "auth != null && (!data.exists() || data.val() === auth.uid) && (!newData.exists() || newData.val() === auth.uid)",
+        ".validate": "$char === 'black_cat' || $char === 'hamster' || $char === 'squirrel' || $char === 'chick'"
+      }
+    },
+    "presence": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "todos": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        "$todoId": {
+          ".validate": "newData.hasChildren(['text', 'done', 'createdAt'])",
+          "text": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "done": {
+            ".validate": "newData.isBoolean()"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "cheers": {
+            "$cheerer": {
+              ".write": "auth != null && auth.uid === $cheerer && auth.uid !== $uid && !data.exists()",
+              ".validate": "newData.isNumber()"
+            }
+          }
+        }
+      }
+    },
+    "inbox": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$eventId": {
+          ".write": "auth != null && ((!data.exists() && newData.child('from').val() === auth.uid) || (auth.uid === $uid && !newData.exists()))",
+          ".validate": "!newData.exists() || (newData.hasChildren(['type', 'from', 'ts']) && newData.child('type').isString() && newData.child('type').val().length <= 20)"
+        }
+      }
+    },
+    "rewards": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        "$month": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000"
+        }
+      }
+    },
+    "winners": {
+      ".read": "auth != null",
+      "$month": {
+        ".write": "auth != null && !data.exists()",
+        ".validate": "newData.hasChildren(['uid', 'ts'])",
+        "gift": {
+          ".write": "auth != null && data.parent().child('uid').val() === auth.uid && !data.exists()",
+          ".validate": "newData.isString() && newData.val().length <= 30"
+        }
+      }
+    },
+    "gifts": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "mail": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$mailId": {
+          ".write": "auth != null && ((!data.exists() && newData.child('from').val() === auth.uid) || auth.uid === $uid)",
+          ".validate": "!newData.exists() || (newData.hasChildren(['type', 'from', 'ts']) && newData.child('type').isString() && newData.child('type').val().length <= 20)"
+        },
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "active": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['device', 'ts']) && newData.child('device').isString() && newData.child('device').val().length <= 64"
+      }
+    },
+    "prefs": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "trash": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}

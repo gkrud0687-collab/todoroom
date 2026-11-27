@@ -1,0 +1,273 @@
+{
+  "black_cat": {
+    "face": "assets/characters/black_cat/black_cat_face.png",
+    "select": "assets/characters/black_cat/black_cat_select.png",
+    "anims": {
+      "happy": [
+        "assets/characters/black_cat/black_cat_happy_01.png",
+        "assets/characters/black_cat/black_cat_happy_02.png",
+        "assets/characters/black_cat/black_cat_happy_03.png",
+        "assets/characters/black_cat/black_cat_happy_04.png"
+      ],
+      "held": [
+        "assets/characters/black_cat/black_cat_held_01.png",
+        "assets/characters/black_cat/black_cat_held_02.png"
+      ],
+      "hit": [
+        "assets/characters/black_cat/black_cat_hit_01.png",
+        "assets/characters/black_cat/black_cat_hit_02.png",
+        "assets/characters/black_cat/black_cat_hit_03.png"
+      ],
+      "idle": [
+        "assets/characters/black_cat/black_cat_idle_01.png",
+        "assets/characters/black_cat/black_cat_idle_02.png",
+        "assets/characters/black_cat/black_cat_idle_03.png"
+      ],
+      "megaphone": [
+        "assets/characters/black_cat/black_cat_megaphone_01.png",
+        "assets/characters/black_cat/black_cat_megaphone_02.png"
+      ],
+      "rest": [
+        "assets/characters/black_cat/black_cat_rest_01.png",
+        "assets/characters/black_cat/black_cat_rest_02.png"
+      ],
+      "sit": [
+        "assets/characters/black_cat/black_cat_sit_01.png",
+        "assets/characters/black_cat/black_cat_sit_02.png"
+      ],
+      "throw": [
+        "assets/characters/black_cat/black_cat_throw_01.png",
+        "assets/characters/black_cat/black_cat_throw_02.png",
+        "assets/characters/black_cat/black_cat_throw_03.png"
+      ],
+      "walk": [
+        "assets/characters/black_cat/black_cat_walk_01.png",
+        "assets/characters/black_cat/black_cat_walk_02.png",
+        "assets/characters/black_cat/black_cat_walk_03.png",
+        "assets/characters/black_cat/black_cat_walk_04.png",
+        "assets/characters/black_cat/black_cat_walk_05.png",
+        "assets/characters/black_cat/black_cat_walk_06.png"
+      ],
+      "work": [
+        "assets/characters/black_cat/black_cat_work_01.png",
+        "assets/characters/black_cat/black_cat_work_02.png",
+        "assets/characters/black_cat/black_cat_work_03.png",
+        "assets/characters/black_cat/black_cat_work_04.png"
+      ],
+      "eat": [
+        "assets/characters/black_cat/black_cat_eat_01.png",
+        "assets/characters/black_cat/black_cat_eat_02.png",
+        "assets/characters/black_cat/black_cat_eat_03.png"
+      ],
+      "stretch": [
+        "assets/characters/black_cat/black_cat_stretch_01.png",
+        "assets/characters/black_cat/black_cat_stretch_02.png",
+        "assets/characters/black_cat/black_cat_stretch_03.png",
+        "assets/characters/black_cat/black_cat_stretch_04.png"
+      ]
+    }
+  },
+  "chick": {
+    "face": "assets/characters/chick/chick_face.png",
+    "select": "assets/characters/chick/chick_select.png",
+    "anims": {
+      "happy": [
+        "assets/characters/chick/chick_happy_01.png",
+        "assets/characters/chick/chick_happy_02.png",
+        "assets/characters/chick/chick_happy_03.png",
+        "assets/characters/chick/chick_happy_04.png"
+      ],
+      "held": [
+        "assets/characters/chick/chick_held_01.png",
+        "assets/characters/chick/chick_held_02.png"
+      ],
+      "hit": [
+        "assets/characters/chick/chick_hit_01.png",
+        "assets/characters/chick/chick_hit_02.png",
+        "assets/characters/chick/chick_hit_03.png"
+      ],
+      "idle": [
+        "assets/characters/chick/chick_idle_01.png",
+        "assets/characters/chick/chick_idle_02.png",
+        "assets/characters/chick/chick_idle_03.png"
+      ],
+      "megaphone": [
+        "assets/characters/chick/chick_megaphone_01.png",
+        "assets/characters/chick/chick_megaphone_02.png"
+      ],
+      "rest": [
+        "assets/characters/chick/chick_rest_01.png",
+        "assets/characters/chick/chick_rest_02.png"
+      ],
+      "sit": [
+        "assets/characters/chick/chick_sit_01.png",
+        "assets/characters/chick/chick_sit_02.png"
+      ],
+      "throw": [
+        "assets/characters/chick/chick_throw_01.png",
+        "assets/characters/chick/chick_throw_02.png",
+        "assets/characters/chick/chick_throw_03.png"
+      ],
+      "walk": [
+        "assets/characters/chick/chick_walk_01.png",
+        "assets/characters/chick/chick_walk_02.png",
+        "assets/characters/chick/chick_walk_03.png",
+        "assets/characters/chick/chick_walk_04.png",
+        "assets/characters/chick/chick_walk_05.png"
+      ],
+      "work": [
+        "assets/characters/chick/chick_work_01.png",
+        "assets/characters/chick/chick_work_02.png",
+        "assets/characters/chick/chick_work_03.png",
+        "assets/characters/chick/chick_work_04.png",
+        "assets/characters/chick/chick_work_05.png"
+      ],
+      "eat": [
+        "assets/characters/chick/chick_eat_01.png",
+        "assets/characters/chick/chick_eat_02.png",
+        "assets/characters/chick/chick_eat_03.png"
+      ],
+      "stretch": [
+        "assets/characters/chick/chick_stretch_01.png",
+        "assets/characters/chick/chick_stretch_02.png",
+        "assets/characters/chick/chick_stretch_03.png",
+        "assets/characters/chick/chick_stretch_04.png"
+      ]
+    }
+  },
+  "hamster": {
+    "face": "assets/characters/hamster/hamster_face.png",
+    "select": "assets/characters/hamster/hamster_select.png",
+    "anims": {
+      "happy": [
+        "assets/characters/hamster/hamster_happy_01.png",
+        "assets/characters/hamster/hamster_happy_02.png",
+        "assets/characters/hamster/hamster_happy_03.png",
+        "assets/characters/hamster/hamster_happy_04.png"
+      ],
+      "held": [
+        "assets/characters/hamster/hamster_held_01.png",
+        "assets/characters/hamster/hamster_held_02.png"
+      ],
+      "hit": [
+        "assets/characters/hamster/hamster_hit_01.png",
+        "assets/characters/hamster/hamster_hit_02.png",
+        "assets/characters/hamster/hamster_hit_03.png"
+      ],
+      "idle": [
+        "assets/characters/hamster/hamster_idle_01.png",
+        "assets/characters/hamster/hamster_idle_02.png",
+        "assets/characters/hamster/hamster_idle_03.png"
+      ],
+      "megaphone": [
+        "assets/characters/hamster/hamster_megaphone_01.png",
+        "assets/characters/hamster/hamster_megaphone_02.png"
+      ],
+      "rest": [
+        "assets/characters/hamster/hamster_rest_01.png",
+        "assets/characters/hamster/hamster_rest_02.png"
+      ],
+      "sit": [
+        "assets/characters/hamster/hamster_sit_01.png",
+        "assets/characters/hamster/hamster_sit_02.png"
+      ],
+      "throw": [
+        "assets/characters/hamster/hamster_throw_01.png",
+        "assets/characters/hamster/hamster_throw_02.png",
+        "assets/characters/hamster/hamster_throw_03.png"
+      ],
+      "walk": [
+        "assets/characters/hamster/hamster_walk_01.png",
+        "assets/characters/hamster/hamster_walk_02.png",
+        "assets/characters/hamster/hamster_walk_03.png",
+        "assets/characters/hamster/hamster_walk_04.png",
+        "assets/characters/hamster/hamster_walk_05.png"
+      ],
+      "work": [
+        "assets/characters/hamster/hamster_work_01.png",
+        "assets/characters/hamster/hamster_work_02.png",
+        "assets/characters/hamster/hamster_work_03.png",
+        "assets/characters/hamster/hamster_work_04.png"
+      ],
+      "eat": [
+        "assets/characters/hamster/hamster_eat_01.png",
+        "assets/characters/hamster/hamster_eat_02.png",
+        "assets/characters/hamster/hamster_eat_03.png"
+      ],
+      "stretch": [
+        "assets/characters/hamster/hamster_stretch_01.png",
+        "assets/characters/hamster/hamster_stretch_02.png",
+        "assets/characters/hamster/hamster_stretch_03.png",
+        "assets/characters/hamster/hamster_stretch_04.png"
+      ]
+    }
+  },
+  "squirrel": {
+    "face": "assets/characters/squirrel/squirrel_face.png",
+    "select": "assets/characters/squirrel/squirrel_select.png",
+    "anims": {
+      "happy": [
+        "assets/characters/squirrel/squirrel_happy_01.png",
+        "assets/characters/squirrel/squirrel_happy_02.png",
+        "assets/characters/squirrel/squirrel_happy_03.png",
+        "assets/characters/squirrel/squirrel_happy_04.png"
+      ],
+      "held": [
+        "assets/characters/squirrel/squirrel_held_01.png",
+        "assets/characters/squirrel/squirrel_held_02.png"
+      ],
+      "hit": [
+        "assets/characters/squirrel/squirrel_hit_01.png",
+        "assets/characters/squirrel/squirrel_hit_02.png",
+        "assets/characters/squirrel/squirrel_hit_03.png"
+      ],
+      "idle": [
+        "assets/characters/squirrel/squirrel_idle_01.png",
+        "assets/characters/squirrel/squirrel_idle_02.png",
+        "assets/characters/squirrel/squirrel_idle_03.png"
+      ],
+      "megaphone": [
+        "assets/characters/squirrel/squirrel_megaphone_01.png",
+        "assets/characters/squirrel/squirrel_megaphone_02.png"
+      ],
+      "rest": [
+        "assets/characters/squirrel/squirrel_rest_01.png",
+        "assets/characters/squirrel/squirrel_rest_02.png"
+      ],
+      "sit": [
+        "assets/characters/squirrel/squirrel_sit_01.png",
+        "assets/characters/squirrel/squirrel_sit_02.png"
+      ],
+      "throw": [
+        "assets/characters/squirrel/squirrel_throw_01.png",
+        "assets/characters/squirrel/squirrel_throw_02.png",
+        "assets/characters/squirrel/squirrel_throw_03.png"
+      ],
+      "walk": [
+        "assets/characters/squirrel/squirrel_walk_01.png",
+        "assets/characters/squirrel/squirrel_walk_02.png",
+        "assets/characters/squirrel/squirrel_walk_03.png",
+        "assets/characters/squirrel/squirrel_walk_04.png",
+        "assets/characters/squirrel/squirrel_walk_05.png"
+      ],
+      "work": [
+        "assets/characters/squirrel/squirrel_work_01.png",
+        "assets/characters/squirrel/squirrel_work_02.png",
+        "assets/characters/squirrel/squirrel_work_03.png",
+        "assets/characters/squirrel/squirrel_work_04.png",
+        "assets/characters/squirrel/squirrel_work_05.png"
+      ],
+      "eat": [
+        "assets/characters/squirrel/squirrel_eat_01.png",
+        "assets/characters/squirrel/squirrel_eat_02.png",
+        "assets/characters/squirrel/squirrel_eat_03.png"
+      ],
+      "stretch": [
+        "assets/characters/squirrel/squirrel_stretch_01.png",
+        "assets/characters/squirrel/squirrel_stretch_02.png",
+        "assets/characters/squirrel/squirrel_stretch_03.png",
+        "assets/characters/squirrel/squirrel_stretch_04.png"
+      ]
+    }
+  }
+}

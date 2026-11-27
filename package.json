@@ -1,0 +1,65 @@
+{
+  "name": "todo-room",
+  "productName": "TodoRoom",
+  "version": "0.8.1",
+  "description": "오늘 할 일 방",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "bundle": "node scripts/build.mjs",
+    "start": "npm run bundle && electron .",
+    "dist": "node scripts/patch-nsis.cjs && npm run bundle && electron-builder --win nsis --x64 --publish never",
+    "dist:zip": "npm run bundle && electron-builder --win zip --x64 --publish never"
+  },
+  "build": {
+    "appId": "com.todoroom.app",
+    "productName": "TodoRoom",
+    "files": [
+      "main.js",
+      "preload.js",
+      "*.html",
+      "dist/**",
+      "assets/**",
+      "package.json",
+      "!scripts/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/ui/app_icon.ico",
+      "signAndEditExecutable": false
+    },
+    "directories": {
+      "output": "release"
+    },
+    "afterPack": "scripts/after-pack.cjs",
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "오늘 할 일 방",
+      "artifactName": "TodoRoom-Setup-${version}.${ext}",
+      "deleteAppDataOnUninstall": false
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "gkrud0687-collab",
+        "repo": "todoroom",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^38.8.6",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.28.2",
+    "firebase": "^11.10.0",
+    "pe-library": "^2.0.3",
+    "resedit": "^3.1.1"
+  },
+  "author": "하경",
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  }
+}

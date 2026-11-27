@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>오늘 할 일 방 — 캐릭터 고르기</title>
+<style>
+  html,body{margin:0;width:600px;height:400px;overflow:hidden;background:transparent;font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif;user-select:none;color:#3b2f4a}
+  .frame{position:absolute;inset:0;width:600px;height:400px;pointer-events:none}
+  .bg{position:absolute;left:30px;top:58px;width:540px;height:326px;background:#FCF9F2;border-radius:10px}
+  .bar{position:absolute;left:12px;top:10px;width:576px;height:46px;-webkit-app-region:drag}
+  .title{position:absolute;left:84px;top:22px;font-size:15px;font-weight:700;color:#4b3c8c}
+  .close{position:absolute;right:30px;top:19px;width:28px;height:28px;-webkit-app-region:no-drag;cursor:pointer;border:0;padding:0;background:none}
+  .close img{width:100%;height:100%}
+  .content{position:absolute;left:40px;top:66px;width:520px;height:312px;display:flex;flex-direction:column;gap:10px}
+  h2{margin:0;font-size:16px;text-align:center}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .card{position:relative;background:#fff;border:2px solid #e2daf3;border-radius:12px;padding:6px 4px 8px;text-align:center;cursor:pointer}
+  .card img.pic{width:100px;height:100px;object-fit:contain;display:block;margin:0 auto}
+  .card .lbl{font-size:13px;font-weight:700}
+  .card.sel{border-color:#8f7be0;box-shadow:0 0 0 3px #d9d0fb}
+  .card.sold{cursor:not-allowed}
+  .card.sold img.pic{filter:grayscale(.8);opacity:.5}
+  .card .stamp{position:absolute;left:50%;top:44px;width:96px;transform:translateX(-50%) rotate(-12deg);display:none}
+  .card.sold .stamp{display:block}
+  .row{display:flex;gap:8px;align-items:center;justify-content:center}
+  input{font:inherit;font-size:15px;padding:8px 10px;border:2px solid #e2daf3;border-radius:10px;width:220px;outline:none}
+  input:focus{border-color:#8f7be0}
+  button.go{font:inherit;font-size:15px;font-weight:700;padding:8px 18px;border:0;border-radius:10px;background:#8f7be0;color:#fff;cursor:pointer}
+  button.go:disabled{background:#c9c0ea;cursor:default}
+  .msg{text-align:center;font-size:13px;min-height:18px;color:#c2410c}
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <img class="frame" src="assets/ui/character_frame.png" alt="">
+  <div class="bar"></div>
+  <div class="title">오늘 할 일 방</div>
+  <button class="close" id="close" title="닫기"><img src="assets/ui/btn_close.png" alt="닫기"></button>
+  <div class="content">
+    <h2>함께할 캐릭터를 골라 주세요</h2>
+    <div class="cards" id="cards"></div>
+    <div class="row" id="loginRow" style="display:none">
+      <b id="loginWho" style="font-size:13px;white-space:nowrap"></b>
+      <input id="pw" type="password" maxlength="40" placeholder="비밀번호" style="width:140px">
+      <button class="go" id="loginGo" style="white-space:nowrap">들어가기</button>
+      <button class="go" id="loginBack" style="white-space:nowrap;background:#e2daf3;color:#4b3c8c">취소</button>
+    </div>
+    <div class="row" id="pickRow">
+      <input id="name" maxlength="12" placeholder="친구들에게 보일 이름 (12자까지)">
+      <button class="go" id="go" disabled>시작하기</button>
+    </div>
+    <div class="msg" id="msg">연결하는 중…</div>
+  </div>
+  <script src="dist/setup.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>15일 보고서 — 오늘 할 일 방</title>
+<style>
+  html,body{margin:0;width:500px;height:400px;overflow:hidden;background:transparent;font-family:"Malgun Gothic","맑은 고딕",system-ui,sans-serif;color:#3b2f4a;user-select:none}
+  .bg{position:absolute;left:22px;top:58px;width:456px;height:318px;background:#FCF9F2;border-radius:9px}
+  .frame{position:absolute;inset:0;width:500px;height:400px;pointer-events:none}
+  .bar{position:absolute;left:10px;top:12px;width:480px;height:44px;-webkit-app-region:drag}
+  .title{position:absolute;left:62px;top:24px;font-size:14px;font-weight:700;color:#4b3c8c;pointer-events:none}
+  .close{position:absolute;right:28px;top:20px;width:28px;height:28px;border:0;padding:0;background:none;cursor:pointer;-webkit-app-region:no-drag}
+  .close img{width:100%;height:100%}
+  .content{position:absolute;left:34px;top:74px;width:432px;height:298px;display:flex;flex-direction:column;gap:5px}
+  .top{display:flex;align-items:center;gap:10px;line-height:1.25}
+  .top img{width:34px;height:34px;object-fit:contain}
+  .top h1{margin:0;font-size:16px}
+  .top .period{font-size:12px;opacity:.7}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .stat{background:#fff;border-radius:10px;padding:4px 8px;box-shadow:0 1px 2px rgba(80,60,140,.12)}
+  .stat .v{font-size:16px;font-weight:800;white-space:nowrap}
+  .stat .k{font-size:11px;opacity:.65}
+  .chart{background:#fff;border-radius:10px;padding:5px 8px 3px;box-shadow:0 1px 2px rgba(80,60,140,.12)}
+  .chart .lbl{font-size:11px;opacity:.65;display:flex;gap:10px}
+  .chart .lbl i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:3px;vertical-align:-1px}
+  .cols{display:flex;align-items:flex-end;gap:3px;height:40px;margin-top:3px}
+  .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;position:relative}
+  .col .all{background:#e5dbff;border-radius:3px 3px 0 0;position:relative;min-height:0}
+  .col .done{position:absolute;left:0;right:0;bottom:0;background:#8f7be0;border-radius:3px 3px 0 0}
+  .days{display:flex;gap:3px;font-size:9px;opacity:.6}
+  .days span{flex:1;text-align:center}
+  .row2{display:flex;gap:6px;min-height:60px;flex:1}
+  .best{flex:1;background:#fff;border-radius:10px;padding:5px 8px;font-size:11.5px;box-shadow:0 1px 2px rgba(80,60,140,.12);overflow:hidden}
+  .best b{font-size:12px}
+  .best ol{margin:2px 0 0;padding-left:16px}
+  .best li{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .best .none{opacity:.6;margin-top:4px}
+  .foot{display:flex;align-items:center;gap:8px}
+  .note{flex:1;font-size:11px;color:#c2410c}
+  .ok{font:inherit;font-size:13px;font-weight:700;border:0;border-radius:10px;padding:7px 14px;background:#8f7be0;color:#fff;cursor:pointer}
+  .ok:disabled{background:#c9c0ea}
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <img class="frame" src="assets/ui/report_frame.png" alt="">
+  <div class="bar"></div>
+  <div class="title">15일 보고서</div>
+  <button class="close" id="x" title="닫기"><img src="assets/ui/btn_close.png" alt="닫기"></button>
+  <div class="content">
+    <div class="top"><img id="face" alt=""><div><h1 id="who">보고서</h1><div class="period" id="period">불러오는 중…</div></div></div>
+    <div class="stats" id="stats"></div>
+    <div class="chart">
+      <div class="lbl"><span><i style="background:#e5dbff"></i>적은 할 일</span><span><i style="background:#8f7be0"></i>완료</span></div>
+      <div class="cols" id="cols"></div>
+      <div class="days" id="days"></div>
+    </div>
+    <div class="row2">
+      <div class="best" id="best"></div>
+      <div class="best" id="cheer"></div>
+    </div>
+    <div class="foot"><div class="note" id="note"></div><button class="ok" id="ok">확인</button></div>
+  </div>
+  <script src="dist/report.js"></script>
+</body>
+</html>
