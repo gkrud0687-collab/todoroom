@@ -747,6 +747,30 @@ function addCard(m) {
   cards.set(m.mailId, c); shownMail.add(m.mailId);
   cardBox.prepend(c);
 }
+// big popup in the middle-top of the screen (where megaphones appear); after a while it shrinks into a small card
+let quizPopBox = null;
+function quizPop(q) {
+  closeQuizPop();
+  const solve = el('button', { class: 'qgo', text: '풀기' });
+  const later = el('button', { class: 'qlater', text: '나중에' });
+  const box = el('div', { class: 'qpop ui' },
+    manifest[q.char] ? el('img', { class: 'qf', src: manifest[q.char].face, alt: '' }) : null,
+    el('div', { class: 'qt' }, el('b', { text: `🖍 ${q.name || '친구'}` }), el('div', {}, '그림 문제를 냈어요!', el('br'), '맞혀 보세요.')),
+    el('div', { class: 'qb' }, solve, later));
+  box._id = q.id;
+  const toCard = () => { if (quizPopBox !== box) return; closeQuizPop(); quizCard(q); };
+  solve.addEventListener('click', (e) => { e.stopPropagation(); closeQuizPop(); window.api.openQuiz(); });
+  later.addEventListener('click', (e) => { e.stopPropagation(); toCard(); });
+  box._t = setTimeout(toCard, 20000);
+  stage.append(box); quizPopBox = box;
+  requestAnimationFrame(() => box.classList.add('show'));
+  play('megaphone', { fromFriend: true });
+}
+function closeQuizPop(id) {
+  const b = quizPopBox; if (!b || (id && b._id !== id)) return;
+  clearTimeout(b._t); quizPopBox = null;
+  b.classList.remove('show'); setTimeout(() => b.remove(), 300); setIgnore(true);
+}
 function quizCard(q) {
   if (!cardBox) { cardBox = el('div', { class: 'cards' }); stage.append(cardBox); }
   const key = 'quiz:' + q.id;
@@ -1232,12 +1256,12 @@ async function main() {
     const t = Date.now() + serverOffset;
     const open = q.status === 'open' && t < Number(q.endsAt);
     if (open) {
-      if (q.from !== uid && !yielded && !myDndOn() && !cards.has('quiz:' + q.id)) quizCard(q);
+      if (q.from !== uid && !yielded && !myDndOn() && !cards.has('quiz:' + q.id) && !(quizPopBox && quizPopBox._id === q.id)) quizPop(q);
       quizSeen = q.id;
-      quizTimer = setTimeout(() => { removeCard('quiz:' + q.id); toast(`⏰ ${q.from === uid ? '내' : (q.name || '친구') + '의'} 그림 문제 시간이 끝났어요. 정답은 "${q.answer}"`); }, Number(q.endsAt) - t + 500);
+      quizTimer = setTimeout(() => { removeCard('quiz:' + q.id); closeQuizPop(q.id); toast(`⏰ ${q.from === uid ? '내' : (q.name || '친구') + '의'} 그림 문제 시간이 끝났어요. 정답은 "${q.answer}"`); }, Number(q.endsAt) - t + 500);
       return;
     }
-    removeCard('quiz:' + q.id);
+    removeCard('quiz:' + q.id); closeQuizPop(q.id);
     if (quizSeen === q.id) { // only announce endings we saw happening
       quizSeen = null;
       if (q.winner) toast(q.winner.uid === uid ? `🎉 정답! "${q.answer}"` : `🎉 ${q.winner.name} 정답! 정답은 "${q.answer}"`);
@@ -1346,7 +1370,8 @@ window.__todoroomDebug = {
     addCard({ type: 'megaphone', mailId: 'm3', from: 'f2', name: '수아', char: 'squirrel', text: '저녁 같이 먹을 사람!' });
   },
   syncRead(id) { removeCard(id); },
-  quizCard() { quizCard({ id: 'qx', from: 'f1', name: '민지', char: 'hamster' }); }, // what the mailbox listener does once a mail is marked read
+  quizCard() { quizCard({ id: 'qx', from: 'f1', name: '민지', char: 'hamster' }); },
+  quizPop() { quizPop({ id: 'qy', from: 'f1', name: '민지', char: 'hamster' }); }, // what the mailbox listener does once a mail is marked read
   megaReplyClick() { const b = document.querySelector('.mega .reply'); if (b) b.click(); return !!b; },
   celebrate(id) { const p = pets.get(id); if (p) { p.lastDoneId = 'x'; p.celebrate(); } },
   pop(id) { const p = pets.get(id); if (p) { p.todos = [{ id: 'a', text: '원고 쓰기', done: true }, { id: 'b', text: '빨래 개기', done: false }]; openPop(p); } },

@@ -581,6 +581,7 @@ async function snapTest(outDir) {
     await qj(`window.__todoroomDebug.show(${JSON.stringify({ ...q, from: 'me', name: '육몽', char: 'black_cat' })}, ${JSON.stringify(gs)}, 0, 'me')`); await wait(500); await shot(quizWin, 'p13_watch');
     const done = { ...q, status: 'done', winner: { uid: 'f2', name: '수아', char: 'squirrel' } };
     await qj(`window.__todoroomDebug.show(${JSON.stringify(done)}, ${JSON.stringify([...gs, { name: '수아', text: '바나나', ok: true, ts: 3 }])}, 1, 'me')`); await wait(500); await shot(quizWin, 'p13_result');
+    await petWin.webContents.executeJavaScript('window.__todoroomDebug.quizPop()'); await wait(700); await shot(petWin, 'p13_pop');
     await petWin.webContents.executeJavaScript('window.__todoroomDebug.quizCard()'); await wait(500); await shot(petWin, 'p13_card');
     await shot(todoWin, 'p13_todo');
     const tj = (c) => todoWin.webContents.executeJavaScript(c).catch((e) => lg('TODO JS ' + e.message));
