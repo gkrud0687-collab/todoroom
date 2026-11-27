@@ -420,7 +420,7 @@ function startUpdater() {
     if (r.response === 0) installUpdate();
   });
   setTimeout(() => checkUpdate(false), 15 * 1000);
-  setInterval(() => { if (updateState !== 'ready') checkUpdate(false); }, 3 * 60 * 60 * 1000);
+  setInterval(() => { if (updateState !== 'ready') checkUpdate(false); }, 30 * 60 * 1000);
 }
 
 app.whenReady().then(() => {
