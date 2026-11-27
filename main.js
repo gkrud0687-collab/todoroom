@@ -227,6 +227,11 @@ function setDnd(mode) {
   else config.dnd = { until: null };
   saveConfig(); broadcastConfig(); refreshTrayMenu();
 }
+function setFreeze(on) {
+  config.freeze = !!on;
+  logLine('app', `그대로 멈춰라 ${on ? '켬' : '끔'}`);
+  saveConfig(); broadcastConfig(); refreshTrayMenu();
+}
 function hideState() { return { mine: false, all: false, ...(config.hide || {}) }; }
 function broadcastConfig() {
   for (const w of [petWin, todoWin, setupWin, reportWin]) if (w && !w.isDestroyed()) w.webContents.send('config:changed', config);
@@ -251,6 +256,7 @@ function appMenuTemplate() {
     { label: '내 캐릭터 숨기기', type: 'checkbox', checked: h.mine, click: (it) => setHide({ mine: it.checked }) },
     { label: '모든 캐릭터 숨기기', type: 'checkbox', checked: h.all, click: (it) => setHide({ all: it.checked }) },
     { type: 'separator' },
+    { label: '그대로 멈춰라 (캐릭터 안 움직이기)', type: 'checkbox', checked: !!config.freeze, click: (it) => setFreeze(it.checked) },
     { label: '캐릭터 다시 불러오기', click: () => recreatePet('메뉴에서 다시 불러오기') },
     { label: '캐릭터·이름 바꾸기', click: () => createSetup() },
     { type: 'separator' },
@@ -496,6 +502,19 @@ async function snapTest(outDir) {
     for (const st of ['idle', 'walk', 'sit', 'work', 'happy', 'hit']) {
       await pj(`window.__todoroomDebug.lineup('${st}')`); await wait(900); await shot(petWin, 'p9_' + st);
     }
+  } else if (process.env.TODOROOM_P10) {
+    const pj = (c) => petWin.webContents.executeJavaScript(c);
+    const st = () => pj(`[...['l1','l2','l3','l4']].map(k=>{const p=window.__todoroomDebug._pet(k);return p.name+' x='+Math.round(p.x)+' '+p.state}).join(' | ')`);
+    const r = [];
+    await pj(`window.__todoroomDebug.lineup('walk')`); await wait(500); r.push('걷는 중: ' + await st());
+    await pj(`window.__todoroomDebug.freeze(true)`); await wait(6000); r.push('멈춤 6초 뒤: ' + await st());
+    await pj(`window.__todoroomDebug._pet('l2').setAway(true); window.__todoroomDebug._pet('l3').setWorking(true)`); await wait(1000); r.push('자리비움·타이머 켜도: ' + await st());
+    await pj(`window.__todoroomDebug.prank('bonk', {to:'l1'})`); await wait(400); r.push('뿅망치 맞는 중: ' + await st());
+    await shot(petWin, 'p10_hit');
+    await wait(4000); r.push('맞고 4초 뒤: ' + await st());
+    await shot(petWin, 'p10_frozen');
+    await pj(`window.__todoroomDebug.freeze(false)`); await wait(1500); r.push('멈춤 끈 뒤: ' + await st());
+    fs.writeFileSync(path.join(outDir, 'p10.txt'), r.join('\n'));
   } else if (process.env.TODOROOM_P7) {
     const pj = (c) => petWin.webContents.executeJavaScript(c);
     const D = 'window.__todoroomDebug.';
@@ -512,6 +531,21 @@ async function snapTest(outDir) {
     await tj(`window.__todoroomDebug.p6(${JSON.stringify({ users: { me: { name: '하경', char: 'black_cat' }, f1: { name: '민지', char: 'hamster' }, f2: { name: '수아', char: 'squirrel' } }, online: { f1: { char: 'hamster', name: '민지' }, f2: { char: 'squirrel', name: '수아', dnd: { until: null } } }, mail: { a: { type: 'prank', kind: 'bonk', from: 'f1', name: '민지', ts: now - 60000 }, b: { type: 'prank', kind: 'peel', from: 'f2', name: '수아', ts: now - 30000 }, c: { type: 'prank', kind: 'nametag', text: '잠꾸러기', from: 'f1', name: '민지', ts: now } }, trash: {}, items: [] })}); document.getElementById('throwBtn').click()`);
     await wait(500); await shot(todoWin, 'p7_todo_prank');
     await tj("window.__todoroomDebug.openMail()"); await wait(400); await shot(todoWin, 'p7_todo_mail');
+  } else if (process.env.TODOROOM_P11) {
+    const now = Date.now();
+    const users = { me: { name: '육몽', char: 'hamster' }, f1: { name: '민지', char: 'black_cat' }, f2: { name: '수아', char: 'squirrel' }, f3: { name: '지우', char: 'chick' } };
+    const items = [
+      { id: 'a', text: '작가 프로그램 완성', done: false, createdAt: now - 3600000 },
+      { id: 'b', text: '캐릭터 프로필 작성', done: false, createdAt: now - 3500000 },
+      { id: 'c', text: '피디 프로그램 수정', done: false, createdAt: now - 3400000, elapsed: 7242000 },
+      { id: 'd', text: '할일 프로그램 수정', done: false, createdAt: now - 3300000 },
+    ];
+    const tj = (c) => todoWin.webContents.executeJavaScript(c);
+    await tj(`window.__todoroomDebug.p6(${JSON.stringify({ users, online: { f1: { char: 'black_cat' }, f2: { char: 'squirrel' }, f3: { char: 'chick' } }, mail: {}, trash: {}, items })})`);
+    await wait(600); await shot(todoWin, 'p11_off');
+    await tj("document.querySelector('#freezeBtn').click()"); await wait(800); await shot(todoWin, 'p11_on');
+    const fr = await petWin.webContents.executeJavaScript('window.__todoroomDebug.isFrozen()');
+    fs.writeFileSync(path.join(outDir, 'p11.txt'), `config.freeze=${config.freeze} pet frozen=${fr}`);
   } else if (process.env.TODOROOM_P6) {
     const now = Date.now();
     const users = { me: { name: '하경', char: 'black_cat' }, f1: { name: '민지', char: 'hamster' }, f2: { name: '수아', char: 'squirrel' }, f3: { name: '지우', char: 'chick' } };
@@ -627,9 +661,10 @@ async function snapTest(outDir) {
 ipcMain.handle('config:get', () => config);
 ipcMain.handle('config:set', (_e, partial) => {
   if (partial && typeof partial === 'object') {
-    for (const k of ['uid', 'char', 'name', 'color', 'pinned', 'sound', 'hide', 'mood', 'font', 'fontSize', 'shortcuts', 'lastReport', 'pomo', 'pomoState', 'seenGiftMonth', 'autoStart', 'monitor', 'dnd', 'gpu']) if (k in partial) config[k] = partial[k];
+    for (const k of ['uid', 'char', 'name', 'color', 'pinned', 'sound', 'hide', 'mood', 'font', 'fontSize', 'shortcuts', 'lastReport', 'pomo', 'pomoState', 'seenGiftMonth', 'autoStart', 'monitor', 'dnd', 'gpu', 'freeze']) if (k in partial) config[k] = partial[k];
     saveConfig(); broadcastConfig();
-    if ('hide' in partial || 'dnd' in partial) refreshTrayMenu();
+    if ('hide' in partial || 'dnd' in partial || 'freeze' in partial) refreshTrayMenu();
+    if ('freeze' in partial) logLine('app', `그대로 멈춰라 ${partial.freeze ? '켬' : '끔'} (할 일 창)`);
     if ('autoStart' in partial) applyAutoStart();
     if ('monitor' in partial) fitPet('monitor');
   }

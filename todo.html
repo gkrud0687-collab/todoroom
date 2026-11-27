@@ -31,6 +31,14 @@
   .del{width:24px;height:24px;flex:none;border:0;background:none;color:rgba(80,60,110,.45);font-size:18px;cursor:pointer;visibility:hidden}
   li:hover .del.on{visibility:visible}
   .foot{display:flex;align-items:center;gap:4px;height:40px}
+  .frz{display:flex;align-items:center;gap:8px;height:38px;margin:4px 0 6px;padding:0 10px;border-radius:12px;background:rgba(255,255,255,.55);border:1.5px solid rgba(120,100,170,.25);font:700 13px "Malgun Gothic","맑은 고딕",system-ui,sans-serif;color:#4b3c8c;cursor:pointer;text-align:left;flex:none}
+  .frz:hover{background:rgba(255,255,255,.75)}
+  .frz .ic{font-size:18px}
+  .frz .st{font-size:12px;font-weight:600;opacity:.7}
+  .frz .sw{margin-left:auto;width:44px;height:24px;border-radius:12px;background:#cfc6e4;position:relative;flex:none;transition:background .15s}
+  .frz .sw::after{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .15s}
+  .frz.on .sw{background:#8f7ae0}
+  .frz.on .sw::after{left:23px}
   .count{font-size:13px;flex:1}
   .online{display:flex;gap:0;align-items:center;margin-left:2px}
   .online img{width:21px;height:21px;object-fit:contain;margin-left:-6px}
@@ -164,6 +172,7 @@
       </div>
     </div>
     <ul id="list"></ul>
+    <button class="frz" id="freezeBtn" title="켜면 내 화면의 캐릭터들이 걸어 다니지 않고 제자리에 서 있어요. 장난에는 반응해요."><span class="ic">🧍</span>그대로 멈춰라<span class="st" id="freezeSt"></span><span class="sw" id="freezeSw"></span></button>
     <div class="foot">
       <button class="ib" id="color" title="꾸미기 (메모지 색·글꼴)"><img src="assets/ui/btn_color.png" alt="꾸미기"></button>
       <button class="ib" id="settings" title="설정"><img src="assets/ui/btn_settings.png" alt="설정"></button>

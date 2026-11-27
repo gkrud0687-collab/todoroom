@@ -181,6 +181,12 @@ function render() {
   const done = items.filter((t) => t.done).length;
   $('#count').textContent = items.length ? `${done}/${items.length} 완료` : '할 일을 적어 보세요';
 }
+// '그대로 멈춰라' switch (same setting as the tray menu item)
+function renderFreeze() {
+  const on = !!config.freeze;
+  $('#freezeBtn').classList.toggle('on', on);
+  $('#freezeSt').textContent = on ? '제자리에 서 있어요' : '돌아다녀요';
+}
 function tickPomo() {
   const ps = pomoState(); const n = document.querySelector('.pt[data-pomo]');
   if (!n || !ps) return;
@@ -763,12 +769,14 @@ async function main() {
   $('#min').addEventListener('click', () => { play('close'); window.api.minimizeTodo(); });
   $('#close').addEventListener('click', () => { play('close'); window.api.hideTodo(); });
   $('#reportBtn').addEventListener('click', () => window.api.openReport(false));
+  $('#freezeBtn').addEventListener('click', async () => { config = await window.api.setConfig({ freeze: !config.freeze }); renderFreeze(); });
+  renderFreeze();
   $('#useHere').addEventListener('click', useHere);
   window.api.onProfileChanged(() => location.reload());
   window.api.onTodoShown(() => play('open'));
   window.api.onConfigChanged((cfg) => {
     const before = JSON.stringify(config.pomoState || null);
-    config = cfg; setSoundSettings(cfg.sound); syncPanel(); applyFont(); renderDnd();
+    config = cfg; setSoundSettings(cfg.sound); syncPanel(); applyFont(); renderDnd(); renderFreeze();
     if (JSON.stringify(cfg.pomoState || null) !== before) render();
   });
   setSoundSettings(config.sound);

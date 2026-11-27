@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 dist/
 release/
 # Firebase 키 — 저장소에 올리지 않는다. 빌드할 때 GitHub Secrets(FIREBASE_CONFIG_JS)에서 만든다.

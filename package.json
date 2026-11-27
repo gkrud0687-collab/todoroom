@@ -1,7 +1,7 @@
 {
   "name": "todo-room",
   "productName": "TodoRoom",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "오늘 할 일 방",
   "main": "main.js",
   "private": true,

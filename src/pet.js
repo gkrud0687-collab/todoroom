@@ -9,6 +9,8 @@ const K = SIZE / 512; // frame px -> screen px
 const FOOT = Math.round(483 * K); // feet line inside a 512px frame
 // some characters are drawn bigger inside their frames; shrink them on screen around the feet line
 const CHAR_SCALE = { black_cat: 0.85 };
+// '그대로 멈춰라': on this screen every character just stands where it is (still reacts to pranks, clicks…)
+let frozen = false;
 const FPS = { idle: 2.2, walk: 8, sit: 1.5, rest: 1, work: 2.5, happy: 6, held: 3, fall: 3, hit: 5, megaphone: 3 };
 const IDLE_SEQ = [0, 0, 0, 1, 0, 0, 0, 2, 0, 0];
 const ITEM_FLY = { poop: 'assets/props/poop_fly.png', banana: 'assets/props/banana.png', water: 'assets/props/water_balloon.png' };
@@ -137,7 +139,7 @@ class Pet {
   setAway(on) {
     on = !!on; if (on === this.away) return;
     this.away = on;
-    if (on) { if (!this.busy() && !(this.state === 'walk' && this.outside())) this.setState('rest', 1e6); }
+    if (on) { if (!frozen && !this.busy() && !(this.state === 'walk' && this.outside())) this.setState('rest', 1e6); }
     else if (this.state === 'rest') this.setState('idle', rand(1, 2));
     this.renderTag();
   }
@@ -226,12 +228,13 @@ class Pet {
     on = !!on;
     if (on === !!this.working) return;
     this.working = on;
-    if (on) { if (!this.busy() && this.state !== 'happy' && !(this.state === 'walk' && this.outside())) this.setState('work', 1e6); }
+    if (on) { if (!frozen && !this.busy() && this.state !== 'happy' && !(this.state === 'walk' && this.outside())) this.setState('work', 1e6); }
     else if (this.state === 'work') this.setState('idle', rand(1, 2));
     this.node.classList.toggle('working', on);
   }
   // pick the next everyday action; avoid doing the same thing twice in a row
   decide() {
+    if (frozen) { this.setState('idle', 1e6); return; }
     if (this.away) { this.setState('rest', 1e6); return; }
     if (this.working && this.anims.work && this.anims.work.length) { this.setState('work', 1e6); return; }
     const has = (k) => this.anims[k] && this.anims[k].length;
@@ -1004,6 +1007,7 @@ async function main() {
   setSoundSettings(cfg.sound);
   config = cfg;
   hide = { mine: false, all: false, ...(cfg.hide || {}) };
+  frozen = !!cfg.freeze;
   requestAnimationFrame(loop);
   if (!cfg.char || !manifest[cfg.char]) return;
 
@@ -1018,6 +1022,7 @@ async function main() {
   let mood = todayMood(cfg);
   window.api.onConfigChanged((c) => {
     config = c;
+    setFrozen(!!c.freeze);
     setSoundSettings(c.sound);
     const before = isHiddenForFriends();
     hide = { mine: false, all: false, ...(c.hide || {}) };
@@ -1231,7 +1236,19 @@ window.addEventListener('unhandledrejection', (e) => { try { window.api.log('pet
 main();
 
 // Developer hook for offline visual checks (no network needed).
+function setFrozen(on) {
+  if (on === frozen) return;
+  frozen = on;
+  for (const p of pets.values()) {
+    if (p.busy() || p.state === 'happy') continue; // let reactions finish; they end in decide()
+    if (p.state === 'walk' && p.outside()) continue; // still coming in from the edge
+    if (on) p.setState('idle', 1e6); else p.decide();
+  }
+}
 window.__todoroomDebug = {
+  freeze(on) { setFrozen(!!on); return frozen; },
+  _pet(k) { return pets.get(k); },
+  isFrozen() { return frozen; },
   lineup(state) {
     const cs = [['l1', 'black_cat', '고양이'], ['l2', 'hamster', '햄스터'], ['l3', 'squirrel', '날다람쥐'], ['l4', 'chick', '오리']];
     cs.forEach(([uid, char, name], i) => {
