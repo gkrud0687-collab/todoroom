@@ -1,7 +1,7 @@
 import { ref, onValue, onChildAdded, onDisconnect, set, update, remove, get, runTransaction, push, serverTimestamp } from 'firebase/database';
 import { db, ensureUser, manifest, todaysTodos, el } from './fb.js';
 import { play, voice, setSoundSettings } from './sound.js';
-import { sendEvent, sendMail, NOTE_COOLDOWN, CHEER_PHRASES, THROW_HAND, THROW_COOLDOWN, REWARD, GIFTS, giftById, drawGift, GIFT_TIERS, monthKey, prevMonthKey, pomoSettings, NOTE_MAX, dndActive, PRANKS, NICK_MAX, NICK_MS, PEEL_MS, sendPrank } from './events.js';
+import { sendEvent, sendMail, NOTE_COOLDOWN, CHEER_PHRASES, THROW_HAND, THROW_COOLDOWN, REWARD, GIFTS, giftById, drawGift, GIFT_TIERS, monthKey, prevMonthKey, pomoSettings, NOTE_MAX, MEGA_MAX, dndActive, PRANKS, NICK_MAX, NICK_MS, PEEL_MS, sendPrank } from './events.js';
 import { elapsedOf } from './time.js';
 
 const SIZE = 112;
@@ -629,7 +629,7 @@ function nextMega() {
   const text = el('div', { class: 'mtext', text: String(ev.text || '').slice(0, isNote ? NOTE_MAX : 40) });
   const who = el('div', { class: 'mwho' },
     manifest[ev.char] ? el('img', { src: manifest[ev.char].face, alt: '' }) : null,
-    el('span', { text: `${fromMe ? '나' : (ev.name || '친구')}의 ${isNote ? '쪽지' : '확성기'} · 클릭하면 닫혀요` }));
+    el('span', { text: `${fromMe ? '나' : (ev.name || '친구')}의 ${isNote ? '쪽지' : ev.reply ? '확성기 답장' : '확성기'} · 클릭하면 닫혀요` }));
   if (!fromMe && ev.from && ev.from !== myUid) { // notes and megaphones: reply right here (1:1 note to the sender)
     const rb = el('button', { class: 'reply ui', text: '답장' });
     rb.addEventListener('click', (e) => { e.stopPropagation(); markRead(ev.mailId); replying = true; openReply({ from: ev.from, name: ev.name, char: ev.char }, box); });
@@ -659,23 +659,22 @@ function openReply(m, existing) {
   const to = m && m.from; if (!to || !myInfo) return;
   try { window.api.log('note', `답장 쓰기 열림: ${m.name || to}`); } catch {}
   const name = (m.name || (online[to] && online[to].name) || '친구');
+  // a megaphone is answered on megaphone paper (as a megaphone sent only to that friend), a note on note paper
+  const mega = existing ? !existing.classList.contains('note') : m.type === 'megaphone';
+  const MAX = mega ? MEGA_MAX : NOTE_MAX;
   let box = existing;
-  if (!box) { // from a small card: open a fresh note paper in the middle
-    box = el('div', { class: 'mega ui note' }, el('img', { class: 'mbg', src: 'assets/props/note_bubble.png', alt: '' }));
+  if (!box) { // from a small card: open a fresh paper in the middle
+    box = el('div', { class: 'mega ui' + (mega ? '' : ' note') }, el('img', { class: 'mbg', src: mega ? 'assets/props/megaphone_bubble.png' : 'assets/props/note_bubble.png', alt: '' }));
     stage.append(box);
     requestAnimationFrame(() => box.classList.add('show'));
   }
   box.classList.add('replying');
-  if (!box.classList.contains('note')) { // a megaphone bubble turns into note paper
-    box.classList.add('note');
-    const bg = box.querySelector('.mbg'); if (bg) bg.src = 'assets/props/note_bubble.png';
-  }
   for (const n of [...box.children]) if (!n.classList.contains('mbg')) n.remove();
-  const ta = el('textarea', { class: 'mtext rin', maxlength: String(NOTE_MAX), placeholder: `${name}에게 보낼 답장 (100자까지)` });
-  const cnt = el('em', { class: 'rcnt', text: `0/${NOTE_MAX}` });
+  const ta = el('textarea', { class: 'mtext rin', maxlength: String(MAX), placeholder: mega ? `${name}에게 확성기로 답장 (${MAX}자까지)` : `${name}에게 보낼 답장 (${MAX}자까지)` });
+  const cnt = el('em', { class: 'rcnt', text: `0/${MAX}` });
   const cancel = el('button', { class: 'rbtn grey', text: '취소' });
   const send = el('button', { class: 'rbtn', text: '보내기' });
-  const label = el('span', { text: `${name}에게 답장` });
+  const label = el('span', { text: mega ? `📢 ${name}에게 답장` : `${name}에게 답장` });
   const who = el('div', { class: 'mwho' }, manifest[m.char] ? el('img', { src: manifest[m.char].face, alt: '' }) : null, label, cnt, cancel, send);
   box.append(ta, who);
   let closed = false;
@@ -686,20 +685,26 @@ function openReply(m, existing) {
   };
   for (const b of [ta, cancel, send, who]) { b.addEventListener('mousedown', (e) => e.stopPropagation()); b.addEventListener('click', (e) => e.stopPropagation()); }
   ta.addEventListener('click', (e) => e.stopPropagation());
-  ta.addEventListener('input', () => { cnt.textContent = `${ta.value.length}/${NOTE_MAX}`; });
+  ta.addEventListener('input', () => { cnt.textContent = `${ta.value.length}/${MAX}`; });
   cancel.addEventListener('click', () => close());
   const go = async () => {
-    const text = ta.value.trim().slice(0, NOTE_MAX);
+    const text = ta.value.trim().slice(0, MAX);
     if (!text) { label.textContent = '보낼 말을 적어 주세요'; return; }
     if (inDnd(online[to])) { label.textContent = '방해 금지 중이라 보낼 수 없어요'; return; }
     const wait = NOTE_COOLDOWN - (Date.now() - lastNoteAt);
     if (wait > 0) { label.textContent = `${Math.ceil(wait / 1000)}초 뒤에 보낼 수 있어요`; return; }
     lastNoteAt = Date.now(); send.disabled = true; label.textContent = '보내는 중…';
     try {
-      const mailId = await sendMail(myInfo, [to], { type: 'note', text, to });
-      const sentId = await sendMail(myInfo, [myUid], { type: 'note_sent', text, to, toName: String(name).slice(0, 12) });
-      update(ref(db, `mail/${myUid}/${sentId}`), { read: true }).catch(() => {});
-      if (online[to]) await sendEvent(myInfo, [to], { type: 'note', text, to, mailId });
+      if (mega) {
+        const mailId = await sendMail(myInfo, [to, myUid], { type: 'megaphone', reply: true, text, to, toName: String(name).slice(0, 12) });
+        update(ref(db, `mail/${myUid}/${mailId}`), { read: true }).catch(() => {});
+        if (online[to]) await sendEvent(myInfo, [to], { type: 'megaphone', reply: true, text, to, mailId });
+      } else {
+        const mailId = await sendMail(myInfo, [to], { type: 'note', text, to });
+        const sentId = await sendMail(myInfo, [myUid], { type: 'note_sent', text, to, toName: String(name).slice(0, 12) });
+        update(ref(db, `mail/${myUid}/${sentId}`), { read: true }).catch(() => {});
+        if (online[to]) await sendEvent(myInfo, [to], { type: 'note', text, to, mailId });
+      }
       play('complete');
       label.textContent = online[to] ? '보냈어요!' : '보냈어요! 다음에 켤 때 보여요';
       ta.disabled = true;
@@ -725,7 +730,7 @@ function addCard(m) {
   const isNote = m.type === 'note';
   const c = el('div', { class: 'mcard ui' + (isNote ? ' note' : ''), title: '클릭하면 읽음으로 바뀌고 닫혀요' },
     isNote ? el('img', { src: 'assets/props/note.png', alt: '' }) : manifest[m.char] ? el('img', { src: manifest[m.char].face, alt: '' }) : null,
-    el('div', { class: 'mc' }, el('b', { text: `${isNote ? '✉ 쪽지 · ' : '📢 '}${m.name || '친구'}` }), el('span', { text: String(m.text || '').slice(0, isNote ? NOTE_MAX : 40) })));
+    el('div', { class: 'mc' }, el('b', { text: `${isNote ? '✉ 쪽지 · ' : m.reply ? '📢 답장 · ' : '📢 '}${m.name || '친구'}` }), el('span', { text: String(m.text || '').slice(0, isNote ? NOTE_MAX : 40) })));
   if (m.from && m.from !== myUid) {
     const rb = el('button', { class: 'reply', text: '답장' });
     rb.addEventListener('click', (e) => { e.stopPropagation(); markRead(m.mailId); removeCard(m.mailId); openReply({ from: m.from, name: m.name, char: m.char }); });

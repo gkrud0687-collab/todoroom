@@ -496,6 +496,8 @@ async function snapTest(outDir) {
     const ok = await pj('window.__todoroomDebug.megaReplyClick()'); await wait(700);
     await pj(`(() => { const t = document.querySelector('.mega textarea'); if (t) { t.value = '나는 11시까지!'; t.dispatchEvent(new Event('input')); } })()`);
     await wait(300); await shot(petWin, 'p12_reply');
+    await pj(`(() => { document.querySelectorAll('.mega').forEach((b) => b._close && b._close()); setTimeout(() => window.__todoroomDebug.fire({ type: 'megaphone', reply: true, from: 'f1', name: '민지', char: 'hamster', text: '나도 11시까지 할 듯!', mailId: 'r1' }), 600); })()`);
+    await wait(1600); await shot(petWin, 'p12_got');
     fs.writeFileSync(path.join(outDir, 'p12.txt'), 'reply button found: ' + ok);
   } else if (process.env.TODOROOM_P8) {
     const pj = (c) => petWin.webContents.executeJavaScript(c);

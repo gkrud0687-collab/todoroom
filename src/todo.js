@@ -600,6 +600,7 @@ function when(ts) {
 }
 function mailText(m) {
   const who = m.from === uid ? '나' : `${m.name || '친구'} 님`;
+  if (m.type === 'megaphone' && m.reply) return m.from === uid ? `📢 ${m.toName || '친구'} 님에게 확성기 답장: ${m.text || ''}` : `📢 ${who}의 확성기 답장: ${m.text || ''}`;
   if (m.type === 'megaphone') return `📢 ${who}: ${m.text || ''}`;
   if (m.type === 'note') return `✉ ${who}의 쪽지: ${m.text || ''}`;
   if (m.type === 'note_sent') return `✉ ${m.toName || '친구'} 님에게 보낸 쪽지: ${m.text || ''}`;
