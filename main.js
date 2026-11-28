@@ -559,6 +559,7 @@ async function snapTest(outDir) {
     const tj = (c) => todoWin.webContents.executeJavaScript(c);
     await tj(`window.__todoroomDebug.p6(${JSON.stringify({ users, online: {}, mail: {}, trash: {}, items })})`);
     await wait(600);
+    await tj(`(() => { const b = document.querySelector('#myReward'); b.textContent = ''; b.append(' · '); const i = document.createElement('img'); i.src = 'assets/rewards/reward_hamster.png'; b.append(i, '12'); })()`);
     for (const [n, css] of Object.entries({
       now: '',
 

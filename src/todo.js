@@ -38,7 +38,10 @@ async function setShared(partial) {
 const mmss = (ms) => { const t = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
 
 function showDate() {
-  $('#date').textContent = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+  { // short date (11.28 (토)) so the snack count after '완료' fits on the line
+    const d = new Date(); const wd = d.toLocaleDateString('ko-KR', { weekday: 'short' });
+    $('#date').textContent = `${d.getMonth() + 1}.${d.getDate()} (${wd})`;
+  }
 }
 
 // ---------- look: color, font, size ----------
